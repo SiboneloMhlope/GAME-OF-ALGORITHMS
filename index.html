@@ -1,31 +1,935 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Sorting Game</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Insertion Sort Adventure</title>
+  <style>
+    :root{
+      --bg1:#08111f;
+      --bg2:#1b2c51;
+      --panel:rgba(14,20,36,.8);
+      --line:rgba(255,255,255,.12);
+      --text:#f6f8ff;
+      --muted:#b9c2db;
+      --accent:#76d9ff;
+      --accent2:#9effb4;
+      --warn:#ffd36a;
+      --bad:#ff7f9d;
+      --good:#7cffad;
+      --shadow:0 16px 48px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top, #274b9b 0%, transparent 34%),
+        linear-gradient(160deg,var(--bg1),var(--bg2));
+      overflow-x:hidden;
+    }
+    .stars{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.7;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.75) 0 1px, transparent 1px),
+        radial-gradient(circle at 70% 15%, rgba(255,255,255,.65) 0 1px, transparent 1px),
+        radial-gradient(circle at 35% 75%, rgba(255,255,255,.55) 0 1px, transparent 1px),
+        radial-gradient(circle at 85% 65%, rgba(255,255,255,.55) 0 1px, transparent 1px);
+      background-size:280px 280px;
+      animation: drift 18s linear infinite;
+    }
+    @keyframes drift{from{transform:translateY(0)}to{transform:translateY(-40px)}}
+
+    .app{
+      width:min(1100px, calc(100% - 24px));
+      margin:16px auto 40px;
+      display:grid;
+      gap:16px;
+    }
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(14px);
+    }
+    .hero,.controls,.game,.shop{
+      padding:18px;
+    }
+    .hero{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+    h1,h2,p{margin:0}
+    h1{font-size:clamp(2rem,4vw,3.4rem)}
+    h2{font-size:1.3rem}
+    .subtitle,.mini,.label{color:var(--muted)}
+    .subtitle{margin-top:6px}
+    .label{
+      font-size:.78rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      margin-bottom:4px;
+    }
+    .pet-badge{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:14px 16px;
+      border-radius:18px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .pet-emoji{font-size:2.7rem}
+    .pet-name{font-size:1.2rem;font-weight:800}
+
+    .row{
+      display:grid;
+      gap:14px;
+      grid-template-columns:1.2fr 1.2fr auto;
+      align-items:end;
+    }
+    label{
+      display:grid;
+      gap:6px;
+      font-size:.9rem;
+      color:var(--muted);
+    }
+    input,select,button{
+      font:inherit;
+    }
+    input,select{
+      width:100%;
+      border:none;
+      outline:none;
+      background:rgba(255,255,255,.1);
+      color:var(--text);
+      border-radius:14px;
+      padding:12px 14px;
+    }
+    .inline{display:flex;gap:10px;flex-wrap:wrap}
+    button{
+      border:none;
+      border-radius:14px;
+      padding:12px 16px;
+      cursor:pointer;
+      color:var(--text);
+      background:rgba(255,255,255,.12);
+      transition:transform .15s ease, background .15s ease;
+    }
+    button:hover{transform:translateY(-1px);background:rgba(255,255,255,.18)}
+    button:active{transform:translateY(1px)}
+    .primary{
+      background:linear-gradient(135deg,var(--accent),#7d8cff);
+      color:#06101f;
+      font-weight:900;
+    }
+
+    .hud{
+      margin-top:16px;
+      display:grid;
+      gap:12px;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+    .hud-card{
+      padding:14px;
+      border-radius:18px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .hud-card span{
+      display:block;
+      color:var(--muted);
+      font-size:.8rem;
+      margin-bottom:4px;
+    }
+    .hud-card strong{font-size:1.6rem}
+
+    .message{
+      min-height:46px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:10px 14px;
+      border-radius:16px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.08);
+      margin-bottom:14px;
+    }
+
+    .board{
+      display:grid;
+      gap:14px;
+      padding:14px;
+      border-radius:20px;
+      background:rgba(255,255,255,.05);
+    }
+    .board-line{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      justify-content:center;
+      align-items:center;
+    }
+    .card,.slot,.pet-card,.small-card,.popup{
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .card{
+      min-width:56px;
+      padding:14px 12px;
+      text-align:center;
+      font-weight:900;
+      font-size:1.15rem;
+      background:linear-gradient(180deg, rgba(158,255,180,.2), rgba(118,217,255,.12));
+      box-shadow:0 10px 20px rgba(0,0,0,.12);
+    }
+    .slot{
+      min-width:52px;
+      padding:12px 10px;
+      background:rgba(255,255,255,.12);
+      color:var(--text);
+    }
+    .slot:hover{background:rgba(255,255,255,.2)}
+    .key-wrap{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:14px;
+    }
+    .key-card{
+      padding:14px 18px;
+      border-radius:18px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .key-value{
+      margin-top:4px;
+      font-size:2rem;
+      font-weight:900;
+      color:var(--warn);
+    }
+    .badge{
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(118,217,255,.14);
+      color:var(--accent);
+      border:1px solid rgba(118,217,255,.18);
+      font-size:.85rem;
+    }
+
+    .shop-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .shop-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+      gap:12px;
+    }
+    .pet-card{
+      padding:14px;
+      background:rgba(255,255,255,.06);
+      display:grid;
+      gap:10px;
+      text-align:center;
+    }
+    .pet-card.owned{outline:2px solid rgba(124,255,173,.35)}
+    .pet-icon{font-size:2.4rem}
+    .cost{color:var(--muted);font-size:.9rem}
+
+    .overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.55);
+      display:grid;
+      place-items:center;
+      padding:16px;
+      z-index:20;
+    }
+    .hidden{display:none}
+    .popup{
+      width:min(620px,100%);
+      padding:22px;
+      background:rgba(14,20,36,.96);
+      box-shadow:var(--shadow);
+    }
+    .popup p{color:var(--muted);margin:10px 0 18px;line-height:1.5}
+    .tutorial-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin:16px 0 18px;
+    }
+    .small-card{
+      padding:14px;
+      background:rgba(255,255,255,.06);
+      min-height:100px;
+    }
+
+    .confetti{
+      position:fixed;
+      top:-20px;
+      z-index:30;
+      pointer-events:none;
+      animation: fall 1.6s linear forwards;
+    }
+    @keyframes fall{
+      to{transform:translateY(110vh) rotate(360deg); opacity:0;}
+    }
+    .shake{animation: shake .35s ease}
+    @keyframes shake{
+      0%,100%{transform:translateX(0)}
+      20%{transform:translateX(-8px)}
+      40%{transform:translateX(8px)}
+      60%{transform:translateX(-6px)}
+      80%{transform:translateX(6px)}
+    }
+
+    @media (max-width:820px){
+      .row,.hud,.tutorial-grid{grid-template-columns:1fr}
+      .hero{flex-direction:column;align-items:flex-start}
+      .hud{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+  </style>
 </head>
 <body>
+  <div class="stars"></div>
 
-<div class="game">
-    <h1>Sorting Game</h1>
-    
-    <div class="buttons">
-        <button id="bubbleBtn" class="active">Bubble Sort</button>
-        <button id="quickBtn">Quick Sort</button>
-    </div>
-    
-    <p>Score: <span id="score">0</span></p>
-    <p id="message">Click YES or NO to swap the yellow boxes</p>
-    
-    <div id="array"></div>
-    
-    <div class="controls">
-        <button id="yesBtn">YES - Swap</button>
-        <button id="noBtn">NO - Don't swap</button>
-        <button id="resetBtn">New Array</button>
-    </div>
-</div>
+  <main class="app">
+    <section class="hero panel">
+      <div>
+        <h1>Insertion Sort Adventure</h1>
+        <p class="subtitle">Sort the cards, beat the timer, earn points, and buy cute animals.</p>
+      </div>
+      <div class="pet-badge">
+        <div id="petEmoji" class="pet-emoji">🐱</div>
+        <div>
+          <div class="label">Active Pet</div>
+          <div id="petName" class="pet-name">Cat</div>
+        </div>
+      </div>
+    </section>
 
-<script src="script.js"></script>
+    <section class="panel controls">
+      <div class="row">
+        <label>
+          Player
+          <select id="playerSelect"></select>
+        </label>
+
+        <label>
+          New Player
+          <div class="inline">
+            <input id="newPlayer" maxlength="24" placeholder="Type name" />
+            <button id="addPlayerBtn">Add</button>
+          </div>
+        </label>
+
+        <div class="inline">
+          <button id="startBtn" class="primary">Start Level 1</button>
+          <button id="helpBtn">How to Play</button>
+          <button id="musicBtn">Music: On</button>
+        </div>
+      </div>
+
+      <div class="hud">
+        <div class="hud-card"><span>Level</span><strong id="levelValue">1</strong></div>
+        <div class="hud-card"><span>Timer</span><strong id="timerValue">20</strong></div>
+        <div class="hud-card"><span>Points</span><strong id="pointsValue">2000</strong></div>
+        <div class="hud-card"><span>High Score</span><strong id="highScoreValue">2000</strong></div>
+      </div>
+    </section>
+
+    <section class="panel game">
+      <div id="message" class="message">Choose a player to begin.</div>
+
+      <div class="board">
+        <div class="board-head">
+          <div>
+            <div class="label">Sorted part</div>
+            <div class="mini">Click the correct slot to insert the key card.</div>
+          </div>
+          <div class="badge">+200 correct • -100 wrong • +300 speed bonus</div>
+        </div>
+
+        <div id="boardArea"></div>
+
+        <div class="key-wrap">
+          <div class="key-card">
+            <div class="label">Current key</div>
+            <div id="keyValue" class="key-value">-</div>
+          </div>
+          <div class="mini">Finish in 10 seconds or less to earn a speed reward.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel shop">
+      <div class="shop-head">
+        <div>
+          <h2>Pet Shop</h2>
+          <p class="mini">Spend points to unlock cute animals.</p>
+        </div>
+        <div class="badge">Saved per player</div>
+      </div>
+      <div id="shopGrid" class="shop-grid"></div>
+    </section>
+  </main>
+
+  <div id="overlay" class="overlay hidden">
+    <div class="popup panel">
+      <h2 id="overlayTitle">Level Up</h2>
+      <p id="overlayMsg"></p>
+      <button id="overlayBtn" class="primary">Continue</button>
+    </div>
+  </div>
+
+  <div id="tutorial" class="overlay hidden">
+    <div class="popup panel">
+      <h2>How to Play</h2>
+      <div class="tutorial-grid">
+        <div class="small-card">1. Look at the sorted cards and the key card.</div>
+        <div class="small-card">2. Click the slot where the key belongs.</div>
+        <div class="small-card">3. Earn points, unlock pets, and beat the timer.</div>
+      </div>
+      <button id="tutorialBtn" class="primary">Got it</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "insertion_sort_adventure_players_v1";
+    const MAX_PLAYERS = 10;
+
+    const pets = [
+      { name: "Cat", emoji: "🐱", cost: 0 },
+      { name: "Bunny", emoji: "🐰", cost: 500 },
+      { name: "Fox", emoji: "🦊", cost: 700 },
+      { name: "Panda", emoji: "🐼", cost: 900 },
+      { name: "Bear", emoji: "🐻", cost: 1200 },
+      { name: "Dino", emoji: "🦕", cost: 1500 }
+    ];
+
+    const state = {
+      players: {},
+      currentPlayer: "",
+      running: false,
+      level: 1,
+      timer: 20,
+      board: [],
+      sorted: [],
+      keyIndex: 1,
+      roundStart: 0,
+      musicOn: true,
+      audioCtx: null,
+      musicTimer: null,
+      musicStep: 0
+    };
+
+    const el = {
+      playerSelect: document.getElementById("playerSelect"),
+      newPlayer: document.getElementById("newPlayer"),
+      addPlayerBtn: document.getElementById("addPlayerBtn"),
+      startBtn: document.getElementById("startBtn"),
+      helpBtn: document.getElementById("helpBtn"),
+      musicBtn: document.getElementById("musicBtn"),
+      levelValue: document.getElementById("levelValue"),
+      timerValue: document.getElementById("timerValue"),
+      pointsValue: document.getElementById("pointsValue"),
+      highScoreValue: document.getElementById("highScoreValue"),
+      message: document.getElementById("message"),
+      boardArea: document.getElementById("boardArea"),
+      keyValue: document.getElementById("keyValue"),
+      shopGrid: document.getElementById("shopGrid"),
+      petEmoji: document.getElementById("petEmoji"),
+      petName: document.getElementById("petName"),
+      overlay: document.getElementById("overlay"),
+      overlayTitle: document.getElementById("overlayTitle"),
+      overlayMsg: document.getElementById("overlayMsg"),
+      overlayBtn: document.getElementById("overlayBtn"),
+      tutorial: document.getElementById("tutorial"),
+      tutorialBtn: document.getElementById("tutorialBtn")
+    };
+
+    function saveAll() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.players));
+    }
+
+    function loadAll() {
+      try {
+        state.players = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      } catch {
+        state.players = {};
+      }
+    }
+
+    function defaultPlayer(name) {
+      return {
+        name,
+        points: 2000,
+        highScore: 2000,
+        levelReached: 1,
+        wins: 0,
+        losses: 0,
+        tutorialSeen: false,
+        inventory: { Cat: true },
+        activePet: "Cat"
+      };
+    }
+
+    function current() {
+      return state.players[state.currentPlayer];
+    }
+
+    function updateHUD() {
+      const p = current();
+      el.levelValue.textContent = state.level;
+      el.timerValue.textContent = state.timer;
+      el.pointsValue.textContent = p ? p.points : 2000;
+      el.highScoreValue.textContent = p ? p.highScore : 2000;
+      if (p) {
+        const pet = pets.find(x => x.name === p.activePet) || pets[0];
+        el.petEmoji.textContent = pet.emoji;
+        el.petName.textContent = pet.name;
+      } else {
+        el.petEmoji.textContent = "🐱";
+        el.petName.textContent = "Cat";
+      }
+    }
+
+    function setMessage(text) {
+      el.message.textContent = text;
+    }
+
+    function showOverlay(title, msg, btnText, action) {
+      el.overlayTitle.textContent = title;
+      el.overlayMsg.textContent = msg;
+      el.overlayBtn.textContent = btnText;
+      el.overlayBtn.onclick = action;
+      el.overlay.classList.remove("hidden");
+    }
+
+    function hideOverlay() {
+      el.overlay.classList.add("hidden");
+    }
+
+    function showTutorial() {
+      el.tutorial.classList.remove("hidden");
+    }
+
+    function hideTutorial() {
+      el.tutorial.classList.add("hidden");
+    }
+
+    function ensureAudio() {
+      if (!state.audioCtx) {
+        state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (state.audioCtx.state === "suspended") state.audioCtx.resume();
+    }
+
+    function tone(freq, dur = 0.12, type = "triangle", vol = 0.05) {
+      ensureAudio();
+      const o = state.audioCtx.createOscillator();
+      const g = state.audioCtx.createGain();
+      o.type = type;
+      o.frequency.value = freq;
+      g.gain.value = vol;
+      o.connect(g);
+      g.connect(state.audioCtx.destination);
+      o.start();
+      o.stop(state.audioCtx.currentTime + dur);
+    }
+
+    function playCorrect() { [523,659,784].forEach((n,i)=>setTimeout(()=>tone(n,0.12,"triangle",0.05), i*90)); }
+    function playWrong() { [180,140].forEach((n,i)=>setTimeout(()=>tone(n,0.14,"sawtooth",0.05), i*120)); }
+    function playWin() { [523,659,784,1046].forEach((n,i)=>setTimeout(()=>tone(n,0.1,"triangle",0.06), i*100)); }
+    function playLose() { [196,174,156].forEach((n,i)=>setTimeout(()=>tone(n,0.14,"sine",0.06), i*140)); }
+
+    function startMusic() {
+      ensureAudio();
+      if (state.musicTimer || !state.musicOn) return;
+      const melody = [262,330,392,523,392,330,294,330];
+      state.musicTimer = setInterval(() => {
+        if (!state.musicOn || !state.currentPlayer) return;
+        tone(melody[state.musicStep % melody.length], 0.07, "triangle", 0.018);
+        state.musicStep++;
+      }, 260);
+    }
+
+    function stopMusic() {
+      if (state.musicTimer) {
+        clearInterval(state.musicTimer);
+        state.musicTimer = null;
+      }
+    }
+
+    function confetti(n = 28) {
+      const icons = ["🎉","✨","💖","⭐","🍭"];
+      for (let i = 0; i < n; i++) {
+        const d = document.createElement("div");
+        d.className = "confetti";
+        d.textContent = icons[i % icons.length];
+        d.style.left = Math.random() * 100 + "vw";
+        d.style.animationDuration = (1.2 + Math.random() * 1.2) + "s";
+        d.style.fontSize = (16 + Math.random() * 18) + "px";
+        document.body.appendChild(d);
+        setTimeout(() => d.remove(), 2600);
+      }
+    }
+
+    function randomArray(level) {
+      const len = Math.min(5 + level, 10);
+      const arr = [];
+      for (let i = 0; i < len; i++) arr.push(Math.floor(Math.random() * 90) + 10);
+      return arr;
+    }
+
+    function insertIndex(arr, key) {
+      for (let i = 0; i < arr.length; i++) {
+        if (key < arr[i]) return i;
+      }
+      return arr.length;
+    }
+
+    function renderPlayers() {
+      const names = Object.keys(state.players).sort((a,b)=>a.localeCompare(b));
+      el.playerSelect.innerHTML = `<option value="">Select player</option>` + names.map(n => `<option value="${n}">${n}</option>`).join("");
+      if (state.currentPlayer && state.players[state.currentPlayer]) {
+        el.playerSelect.value = state.currentPlayer;
+      }
+    }
+
+    function renderBoard() {
+      const p = current();
+      el.boardArea.innerHTML = "";
+      if (!p || !state.running || state.board.length === 0) {
+        el.boardArea.innerHTML = `<div class="mini" style="text-align:center;color:var(--muted)">Press Start Level to play.</div>`;
+        el.keyValue.textContent = "-";
+        return;
+      }
+
+      const row = document.createElement("div");
+      row.className = "board-line";
+
+      const key = state.board[state.keyIndex];
+      const correct = insertIndex(state.sorted, key);
+      el.keyValue.textContent = key;
+
+      for (let i = 0; i <= state.sorted.length; i++) {
+        const slot = document.createElement("button");
+        slot.className = "slot";
+        slot.textContent = "⬇";
+        slot.onclick = () => chooseSlot(i);
+        row.appendChild(slot);
+
+        if (i < state.sorted.length) {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.textContent = state.sorted[i];
+          row.appendChild(card);
+        }
+      }
+
+      const hint = document.createElement("div");
+      hint.className = "mini";
+      hint.style.textAlign = "center";
+      hint.style.marginTop = "12px";
+      hint.textContent = `Keys sorted so far: ${state.sorted.length} / ${state.board.length}`;
+      el.boardArea.appendChild(row);
+      el.boardArea.appendChild(hint);
+      state.correctHint = correct;
+    }
+
+    function renderShop() {
+      const p = current();
+      el.shopGrid.innerHTML = "";
+      if (!p) {
+        el.shopGrid.innerHTML = `<div class="mini">Add a player to unlock pets.</div>`;
+        return;
+      }
+
+      pets.forEach(pet => {
+        const owned = !!p.inventory[pet.name];
+        const card = document.createElement("div");
+        card.className = "pet-card" + (owned ? " owned" : "");
+        card.innerHTML = `
+          <div class="pet-icon">${pet.emoji}</div>
+          <strong>${pet.name}</strong>
+          <div class="cost">${pet.cost === 0 ? "Free starter pet" : `${pet.cost} points`}</div>
+          <button>${owned ? (p.activePet === pet.name ? "Using" : "Use") : "Buy"}</button>
+        `;
+        card.querySelector("button").onclick = () => buyOrUsePet(pet);
+        el.shopGrid.appendChild(card);
+      });
+    }
+
+    function syncUI() {
+      updateHUD();
+      renderBoard();
+      renderShop();
+      el.musicBtn.textContent = `Music: ${state.musicOn ? "On" : "Off"}`;
+    }
+
+    function persistCurrent() {
+      saveAll();
+      renderPlayers();
+      syncUI();
+    }
+
+    function addPlayer() {
+      const name = el.newPlayer.value.trim().replace(/[^\w\s-]/g, "").slice(0, 24);
+      if (!name) return setMessage("Type a player name first.");
+      const count = Object.keys(state.players).length;
+      if (!state.players[name] && count >= MAX_PLAYERS) {
+        return setMessage("Maximum 10 players allowed.");
+      }
+      if (!state.players[name]) state.players[name] = defaultPlayer(name);
+      state.currentPlayer = name;
+      el.newPlayer.value = "";
+      persistCurrent();
+      setMessage(`Welcome, ${name}.`);
+      if (!current().tutorialSeen) showTutorial();
+    }
+
+    function selectPlayer(name) {
+      if (!name) {
+        state.currentPlayer = "";
+        syncUI();
+        setMessage("Choose or add a player.");
+        return;
+      }
+      state.currentPlayer = name;
+      syncUI();
+      setMessage(`Welcome back, ${name}.`);
+      if (!current().tutorialSeen) showTutorial();
+    }
+
+    function startLevel(level) {
+      const p = current();
+      if (!p) return setMessage("Choose or add a player first.");
+      ensureAudio();
+      startMusic();
+      hideOverlay();
+
+      state.level = level;
+      state.timer = Math.max(10, 20 - (level - 1) * 2);
+      state.board = randomArray(level);
+      state.sorted = [state.board[0]];
+      state.keyIndex = 1;
+      state.running = true;
+      state.roundStart = Date.now();
+
+      setMessage(`Level ${level} started. Find the correct insertion slot.`);
+      syncUI();
+
+      clearInterval(state.timerId);
+      state.timerId = setInterval(() => {
+        if (!state.running) return;
+        state.timer--;
+        if (state.timer <= 0) {
+          state.timer = 0;
+          loseLevel();
+          return;
+        }
+        updateHUD();
+        saveAll();
+      }, 1000);
+    }
+
+    function chooseSlot(index) {
+      const p = current();
+      if (!p || !state.running) return;
+
+      const key = state.board[state.keyIndex];
+      const correct = insertIndex(state.sorted, key);
+
+      if (index === correct) {
+        state.sorted.splice(index, 0, key);
+        p.points += 200;
+        if (p.points > p.highScore) p.highScore = p.points;
+        playCorrect();
+
+        if (Date.now() - state.roundStart <= 10000) {
+          p.points += 300;
+          setMessage("Great speed! +300 bonus.");
+        } else {
+          setMessage("+200 points.");
+        }
+
+        state.keyIndex++;
+        if (state.keyIndex >= state.board.length) {
+          finishLevel();
+          return;
+        }
+
+        if (p.points > p.highScore) p.highScore = p.points;
+        if (p.points >= p.highScore) p.highScore = p.points;
+        syncUI();
+        saveAll();
+      } else {
+        p.points = Math.max(0, p.points - 100);
+        playWrong();
+        setMessage("Wrong slot. -100 points.");
+        el.boardArea.classList.remove("shake");
+        void el.boardArea.offsetWidth;
+        el.boardArea.classList.add("shake");
+        syncUI();
+        saveAll();
+      }
+    }
+
+    function finishLevel() {
+      const p = current();
+      if (!p) return;
+      state.running = false;
+      clearInterval(state.timerId);
+
+      let bonus = 500;
+      if (state.timer >= 10) bonus += 300;
+
+      p.points += bonus;
+      p.wins += 1;
+      if (p.points > p.highScore) p.highScore = p.points;
+      p.levelReached = Math.max(p.levelReached, state.level);
+
+      confetti(34);
+      playWin();
+      syncUI();
+      saveAll();
+
+      if (state.level >= 5) {
+        showOverlay(
+          "You Win!",
+          `You finished all levels. Bonus +${bonus}. Play again from Level 1?`,
+          "Play Again",
+          () => {
+            hideOverlay();
+            startLevel(1);
+          }
+        );
+      } else {
+        showOverlay(
+          `Level ${state.level} Cleared!`,
+          `Bonus +${bonus}. Finish within 10 seconds for the speed reward.`,
+          "Next Level",
+          () => {
+            hideOverlay();
+            startLevel(state.level + 1);
+          }
+        );
+      }
+      setMessage("Level complete!");
+    }
+
+    function loseLevel() {
+      const p = current();
+      if (!p) return;
+      state.running = false;
+      clearInterval(state.timerId);
+      p.points = Math.max(0, p.points - 200);
+      p.losses += 1;
+      playLose();
+      syncUI();
+      saveAll();
+
+      showOverlay(
+        "Time's Up",
+        "You lost 200 points. Try again and be faster.",
+        "Retry Level",
+        () => {
+          hideOverlay();
+          startLevel(state.level);
+        }
+      );
+      setMessage("Time ran out.");
+    }
+
+    function buyOrUsePet(pet) {
+      const p = current();
+      if (!p) return;
+      ensureAudio();
+
+      if (!p.inventory[pet.name]) {
+        if (p.points < pet.cost) {
+          setMessage("Not enough points for that pet.");
+          playWrong();
+          return;
+        }
+        p.points -= pet.cost;
+        p.inventory[pet.name] = true;
+        p.activePet = pet.name;
+        setMessage(`${pet.name} unlocked!`);
+        playCorrect();
+      } else {
+        p.activePet = pet.name;
+        setMessage(`${pet.name} is now active.`);
+        playCorrect();
+      }
+
+      syncUI();
+      saveAll();
+    }
+
+    function init() {
+      loadAll();
+      renderPlayers();
+      renderShop();
+      syncUI();
+
+      el.addPlayerBtn.onclick = addPlayer;
+      el.playerSelect.onchange = e => selectPlayer(e.target.value);
+      el.startBtn.onclick = () => {
+        ensureAudio();
+        if (!state.currentPlayer) return setMessage("Choose a player first.");
+        if (!current().tutorialSeen) showTutorial();
+        startLevel(1);
+      };
+      el.helpBtn.onclick = () => showTutorial();
+      el.musicBtn.onclick = () => {
+        ensureAudio();
+        state.musicOn = !state.musicOn;
+        el.musicBtn.textContent = `Music: ${state.musicOn ? "On" : "Off"}`;
+        if (state.musicOn) startMusic();
+        else stopMusic();
+      };
+      el.tutorialBtn.onclick = () => {
+        const p = current();
+        if (p) {
+          p.tutorialSeen = true;
+          saveAll();
+        }
+        hideTutorial();
+      };
+      el.overlayBtn.onclick = () => {};
+      document.addEventListener("keydown", e => {
+        if (e.key === "Enter" && document.activeElement === el.newPlayer) addPlayer();
+      });
+
+      if (Object.keys(state.players).length > 0) {
+        const first = Object.keys(state.players).sort((a,b)=>a.localeCompare(b))[0];
+        state.currentPlayer = first;
+        syncUI();
+        if (!current().tutorialSeen) showTutorial();
+      }
+    }
+
+    init();
+  </script>
 </body>
 </html>
