@@ -31,35 +31,35 @@
         #playerNamesSection { margin-bottom:28px; }
         .name-input-row { display:flex;align-items:center;gap:12px;margin-bottom:10px; }
         .name-input-row label { color:#ffeb3b;font-weight:700;font-size:16px;width:80px;text-align:right;flex-shrink:0; }
-        .name-input-row input { flex:1;padding:12px 16px;border-radius:10px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-size:16px;font-weight:600;outline:none;transition:border-color 0.2s; }
+        .name-input-row input { flex:1;padding:12px 16px;border-radius:10px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-size:16px;font-weight:600;outline:none; }
         .name-input-row input:focus { border-color:#ffeb3b; }
         .name-input-row input::placeholder { color:rgba(255,255,255,0.35); }
-        #kickoffBtn { background:linear-gradient(135deg,#4caf50,#1b5e20);color:white;padding:20px 70px;font-size:22px;font-weight:900;border:none;border-radius:16px;cursor:pointer;box-shadow:0 8px 24px rgba(76,175,80,0.5);transition:filter 0.2s,transform 0.1s;text-transform:uppercase;letter-spacing:1px; }
+        #kickoffBtn { background:linear-gradient(135deg,#4caf50,#1b5e20);color:white;padding:20px 70px;font-size:22px;font-weight:900;border:none;border-radius:16px;cursor:pointer;box-shadow:0 8px 24px rgba(76,175,80,0.4); }
         #kickoffBtn:hover { filter:brightness(1.2);transform:translateY(-2px); }
         /* ===== TRANSITION SCREEN ===== */
-        #transitionScreen { position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.97);display:none;justify-content:center;align-items:center;z-index:5000;flex-direction:column;text-align:center;padding:20px; }
+        #transitionScreen { position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.97);display:none;justify-content:center;align-items:center;z-index:5000;flex-direction:column;text-align:center; }
         #transitionScreen.show { display:flex;animation:fadeIn 0.4s; }
         .transition-emoji { font-size:80px;margin-bottom:16px; }
         .transition-title { color:#ffeb3b;font-size:38px;font-weight:900;text-shadow:0 0 20px rgba(255,235,59,0.7);margin-bottom:10px; }
         .transition-sub { color:#aaa;font-size:20px;margin-bottom:36px; }
-        #transitionStartBtn { background:linear-gradient(135deg,#4caf50,#1b5e20);color:white;padding:18px 60px;font-size:22px;font-weight:900;border:none;border-radius:16px;cursor:pointer;box-shadow:0 8px 24px rgba(76,175,80,0.5);transition:filter 0.2s; }
+        #transitionStartBtn { background:linear-gradient(135deg,#4caf50,#1b5e20);color:white;padding:18px 60px;font-size:22px;font-weight:900;border:none;border-radius:16px;cursor:pointer;box-shadow:0 6px 18px rgba(76,175,80,0.5); }
         #transitionStartBtn:hover { filter:brightness(1.2); }
         /* ===== RESULTS SCREEN ===== */
         #resultsScreen { position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.97);display:none;justify-content:center;align-items:center;z-index:5000;overflow-y:auto;padding:20px; }
         #resultsScreen.show { display:flex;animation:fadeIn 0.4s; }
         .results-box { background:white;border-radius:24px;padding:36px 32px;max-width:560px;width:100%;box-shadow:0 25px 70px rgba(0,0,0,0.8);animation:slideUp 0.5s; }
-        .results-box h2 { font-size:34px;font-weight:900;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:24px; }
+        .results-box h2 { font-size:34px;font-weight:900;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px; }
         .result-card { background:#f9f9f9;border-radius:14px;padding:16px 18px;margin-bottom:14px;border-left:6px solid #4caf50; }
         .result-card-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:10px; }
         .result-player-name { font-size:20px;font-weight:900;color:#222; }
         .result-player-score { font-size:22px;font-weight:900;color:#667eea; }
         .result-level-row { display:flex;justify-content:space-between;align-items:center;padding:4px 8px;margin:3px 0;background:white;border-radius:8px;font-size:14px; }
-        .results-play-again { background:linear-gradient(135deg,#4caf50,#1b5e20);color:white;padding:16px 50px;font-size:20px;font-weight:900;border:none;border-radius:12px;cursor:pointer;box-shadow:0 6px 18px rgba(76,175,80,0.4);display:block;margin:20px auto 0;transition:filter 0.2s; }
+        .results-play-again { background:linear-gradient(135deg,#4caf50,#1b5e20);color:white;padding:16px 50px;font-size:20px;font-weight:900;border:none;border-radius:12px;cursor:pointer;box-shadow:0 6px 18px rgba(76,175,80,0.5); }
         .results-play-again:hover { filter:brightness(1.2); }
         /* ===== CURRENT PLAYER BADGE ===== */
         #currentPlayerBadge { display:none;background:rgba(255,235,59,0.15);border:2px solid #ffeb3b;border-radius:10px;padding:8px 18px;color:#ffeb3b;font-weight:800;font-size:15px;text-align:center;margin-bottom:10px; }
         /* ===== GAME FIELD ===== */
-        .field { max-width:1000px;margin:auto;background:repeating-linear-gradient(90deg,#2d7a2d,#2d7a2d 50px,#358135 50px,#358135 100px);border:8px solid white;border-radius:20px;padding:20px;box-shadow:0 10px 50px rgba(0,0,0,0.5);position:relative;display:none; }
+        .field { max-width:1000px;margin:auto;background:repeating-linear-gradient(90deg,#2d7a2d,#2d7a2d 50px,#358135 50px,#358135 100px);border:8px solid white;border-radius:20px;padding:20px;box-shadow:0 0 50px rgba(0,0,0,0.5);position:relative;display:none; }
         .field.show { display:block; }
         .field::before { content:'';position:absolute;top:50%;left:0;right:0;height:4px;background:white;transform:translateY(-50%); }
         .field::after { content:'';position:absolute;top:50%;left:50%;width:100px;height:100px;border:4px solid white;border-radius:50%;transform:translate(-50%,-50%); }
@@ -74,7 +74,7 @@
         .player { width:100%;height:100%;position:relative;transition:all 0.3s ease; }
         .player-body { width:60px;height:80px;background:#2196f3;border-radius:10px 10px 0 0;position:absolute;left:50%;top:40px;transform:translateX(-50%);border:3px solid #1976d2; }
         .player-head { width:40px;height:40px;background:#ffdbac;border-radius:50%;position:absolute;left:50%;top:0;transform:translateX(-50%);border:3px solid #e0a96d; }
-        .player-ball { width:30px;height:30px;background:white;border-radius:50%;position:absolute;left:50%;top:100px;transform:translateX(-50%);box-shadow:inset -5px -5px 10px rgba(0,0,0,0.2);background-image:radial-gradient(circle at 30% 30%,black 8%,transparent 8%),radial-gradient(circle at 70% 30%,black 8%,transparent 8%),radial-gradient(circle at 50% 60%,black 8%,transparent 8%); }
+        .player-ball { width:30px;height:30px;background:white;border-radius:50%;position:absolute;left:50%;top:100px;transform:translateX(-50%);box-shadow:inset -5px -5px 10px rgba(0,0,0,0.2);background:radial-gradient(circle at 30% 30%,#fff,#e0e0e0); }
         .player-face { position:absolute;width:40px;height:40px;left:50%;top:0;transform:translateX(-50%);font-size:24px;display:flex;align-items:center;justify-content:center; }
         .player.happy { animation:jump 0.5s ease; }
         .player.cry { animation:shakep 0.5s ease; }
@@ -83,7 +83,7 @@
         @keyframes jump { 0%,100%{transform:translateY(-50%)} 50%{transform:translateY(-70%)} }
         @keyframes shakep { 0%,100%{transform:translateX(-50%) translateY(-50%)} 25%{transform:translateX(-55%) translateY(-50%)} 75%{transform:translateX(-45%) translateY(-50%)} }
         #array { display:flex;justify-content:center;gap:12px;margin:30px 0;flex-wrap:wrap;min-height:100px;padding:20px 0; }
-        .ball { width:70px;height:70px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#1fc910;transition:all 0.3s ease;box-shadow:0 4px 12px rgba(0,0,0,0.3),inset -5px -5px 15px rgba(0,0,0,0.1);position:relative;border:3px solid #000;background-image:radial-gradient(circle at 25% 25%,black 10%,transparent 10%),radial-gradient(circle at 75% 25%,black 10%,transparent 10%),radial-gradient(circle at 25% 75%,black 10%,transparent 10%),radial-gradient(circle at 75% 75%,black 10%,transparent 10%),radial-gradient(circle at 50% 50%,black 12%,transparent 12%); }
+        .ball { width:70px;height:70px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#1fc910;transition:all 0.3s ease;border:3px solid #ddd;box-shadow:0 4px 10px rgba(0,0,0,0.2); }
         .ball.highlight { transform:scale(1.2) translateY(-10px);box-shadow:0 10px 25px rgba(255,235,59,0.8),0 0 30px rgba(255,235,59,0.6);border:4px solid #ffeb3b;z-index:5; }
         .ball.sorted { background:linear-gradient(135deg,#c8e6c9,#a5d6a7);opacity:0.7;border-color:#4caf50; }
         .ball.correct { animation:goalFlash 0.5s; }
@@ -91,7 +91,7 @@
         @keyframes goalFlash { 0%,100%{background:#4caf50;transform:scale(1.3)} 50%{background:#81c784} }
         @keyframes missShake { 0%,100%{transform:translateX(0) rotate(0deg)} 25%{transform:translateX(-10px) rotate(-10deg);background:#f44336} 75%{transform:translateX(10px) rotate(10deg);background:#f44336} }
         .controls { display:flex;justify-content:center;gap:15px;flex-wrap:wrap;margin:20px 0; }
-        .controls button { padding:18px 45px;font-size:22px;cursor:pointer;border:none;border-radius:15px;font-weight:900;transition:0.2s;box-shadow:0 6px 15px rgba(0,0,0,0.4);text-transform:uppercase;color:white; }
+        .controls button { padding:18px 45px;font-size:22px;cursor:pointer;border:none;border-radius:15px;font-weight:900;transition:0.2s;box-shadow:0 6px 15px rgba(0,0,0,0.4);text-transform:uppercase;letter-spacing:1px; }
         .controls button:active { transform:scale(0.95) translateY(3px);box-shadow:0 2px 5px rgba(0,0,0,0.4); }
         .controls button:disabled { opacity:0.4;cursor:not-allowed;transform:none; }
         #yesBtn { background:linear-gradient(135deg,#4caf50,#1b5e20); }
@@ -108,7 +108,7 @@
         .countdown-text { position:absolute;bottom:25%;font-size:32px;color:white;font-weight:700;letter-spacing:2px; }
         #message { min-height:60px;font-size:18px;margin:20px 0;padding:16px;background:rgba(255,255,255,0.95);border-radius:12px;font-weight:700;color:#1565c0;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.2); }
         .trophy { position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:150px;z-index:1000;animation:trophyWin 1s ease forwards;filter:drop-shadow(0 0 30px gold); }
-        @keyframes trophyWin { 0%{transform:translate(-50%,-50%) scale(0) rotate(0deg)} 50%{transform:translate(-50%,-50%) scale(1.5) rotate(180deg)} 100%{transform:translate(-50%,-50%) scale(1) rotate(360deg)} }
+        @keyframes trophyWin { 0%{transform:translate(-50%,-50%) scale(0) rotate(0deg)} 50%{transform:translate(-50%,-50%) scale(1.5) rotate(180deg)} 100%{transform:translate(-50%,-50%) scale(1) rotate(0deg)} }
         .broken-heart { position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:120px;z-index:1000;animation:heartBreak 1s ease forwards;filter:drop-shadow(0 0 20px red); }
         @keyframes heartBreak { 0%{transform:translate(-50%,-50%) scale(0);opacity:0} 50%{transform:translate(-50%,-50%) scale(1.5);opacity:1} 100%{transform:translate(-50%,-50%) scale(1);opacity:0} }
         .game-over { position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:2000; }
@@ -119,13 +119,13 @@
         .modal h2 { font-size:36px;margin-bottom:20px;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
         .modal p { font-size:18px;margin:12px 0;color:#333; }
         .modal strong { color:#667eea;font-size:24px; }
-        #playAgainBtn { background:linear-gradient(135deg,#4caf50,#1b5e20);color:white;padding:14px 40px;font-size:18px;border:none;border-radius:12px;font-weight:900;cursor:pointer;margin-top:16px;box-shadow:0 6px 15px rgba(0,0,0,0.3); }
+        #playAgainBtn { background:linear-gradient(135deg,#4caf50,#1b5e20);color:white;padding:14px 40px;font-size:18px;border:none;border-radius:12px;font-weight:900;cursor:pointer;margin-top:16px;box-shadow:0 6px 15px rgba(76,175,80,0.4); }
         .timer-danger span { animation:dangerPulse 0.5s infinite;color:#f44336!important; }
         @keyframes dangerPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
         /* ===== STAR POPUP ===== */
         .star-popup { position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);display:none;justify-content:center;align-items:center;z-index:3500; }
         .star-popup.show { display:flex;animation:fadeIn 0.3s; }
-        .star-popup-box { background:linear-gradient(145deg,#1a1a2e,#16213e);border:4px solid #ffeb3b;border-radius:28px;padding:40px 50px;text-align:center;box-shadow:0 0 60px rgba(255,235,59,0.4),0 25px 70px rgba(0,0,0,0.8);animation:slideUp 0.5s;max-width:420px;width:90%; }
+        .star-popup-box { background:linear-gradient(145deg,#1a1a2e,#16213e);border:4px solid #ffeb3b;border-radius:28px;padding:40px 50px;text-align:center;box-shadow:0 0 60px rgba(255,235,59,0.4),0 20px 50px rgba(0,0,0,0.8);max-width:450px; }
         .star-popup-title { font-size:26px;font-weight:900;color:#ffeb3b;text-shadow:0 0 20px rgba(255,235,59,0.7);margin-bottom:6px;letter-spacing:1px; }
         .star-popup-subtitle { font-size:15px;color:#aaa;margin-bottom:22px; }
         .stars-row { display:flex;justify-content:center;gap:10px;margin:18px 0; }
@@ -135,7 +135,7 @@
         .star-popup-score { font-size:20px;color:#fff;margin:14px 0 6px;font-weight:700; }
         .star-popup-score span { color:#4caf50;font-size:26px; }
         .star-popup-accuracy { font-size:15px;color:#aaa;margin-bottom:22px; }
-        .star-popup-next { background:linear-gradient(135deg,#4caf50,#1b5e20);color:white;padding:14px 40px;font-size:18px;font-weight:900;border:none;border-radius:12px;cursor:pointer;box-shadow:0 6px 18px rgba(76,175,80,0.5);transition:filter 0.2s;margin-top:6px; }
+        .star-popup-next { background:linear-gradient(135deg,#4caf50,#1b5e20);color:white;padding:14px 40px;font-size:18px;font-weight:900;border:none;border-radius:12px;cursor:pointer;box-shadow:0 6px 15px rgba(76,175,80,0.4); }
         .star-popup-next:hover { filter:brightness(1.2); }
         @keyframes wrongShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
         .shake { animation:wrongShake 0.4s ease; }
@@ -253,8 +253,8 @@
         <h2 style="font-size:28px;">⚠️ Quit Match?</h2>
         <p style="font-size:20px;margin:18px 0;">Are you sure you want to quit or stop?</p>
         <div style="display:flex;gap:16px;justify-content:center;margin-top:20px;flex-wrap:wrap;">
-            <button id="quitYesBtn" style="background:linear-gradient(135deg,#f44336,#b71c1c);color:white;padding:14px 36px;font-size:18px;font-weight:900;border:none;border-radius:12px;cursor:pointer;">✅ YES, QUIT</button>
-            <button id="quitNoBtn" style="background:linear-gradient(135deg,#4caf50,#1b5e20);color:white;padding:14px 36px;font-size:18px;font-weight:900;border:none;border-radius:12px;cursor:pointer;">❌ NO, KEEP PLAYING</button>
+            <button id="quitYesBtn" style="background:linear-gradient(135deg,#f44336,#b71c1c);color:white;padding:14px 36px;font-size:18px;font-weight:900;border:none;border-radius:12px;cursor:pointer;box-shadow:0 6px 15px rgba(244,67,54,0.4);">YES, QUIT</button>
+            <button id="quitNoBtn" style="background:linear-gradient(135deg,#4caf50,#1b5e20);color:white;padding:14px 36px;font-size:18px;font-weight:900;border:none;border-radius:12px;cursor:pointer;box-shadow:0 6px 15px rgba(76,175,80,0.4);">NO, CONTINUE</button>
         </div>
     </div>
 </div>
@@ -274,6 +274,7 @@ let highScore=parseInt(localStorage.getItem('soccerSortHigh')||'0');
 let gameActive=false, isPaused=false, audioCtx;
 let lastUnsorted=0, pass=0;
 let levelCorrect=0, levelWrong=0, levelStarHistory=[];
+let zeroScoreFailCount=0; // NEW: Track consecutive failures at zero score
 
 const levelConfig = {
     1:{size:5,min:10,max:99,time:120},
@@ -449,6 +450,7 @@ function nextLevel(){
     score+=bonus;
     const stars=calcStars();
     levelStarHistory.push({level:completedLevel,stars,score});
+    zeroScoreFailCount=0; // RESET: Player succeeded, clear zero-score fails
     playSound('win'); showTrophy(); updatePlayerEmotion('happy');
     document.getElementById('message').innerHTML=`⚽ GOOOAL! +${bonus} bonus points!`;
     updateDisplay();
@@ -480,6 +482,7 @@ function startGame(){
     score=0; lives=3; level=1; streak=0; maxCombo=0;
     timeLeft=getLevelConfig().time; gameActive=true; isPaused=false;
     levelCorrect=0; levelWrong=0; levelStarHistory=[];
+    zeroScoreFailCount=0; // RESET: New game, clear zero-score fails
     document.getElementById('gameControls').style.display='flex';
     document.getElementById('startBtn').style.display='none';
     document.getElementById('stopBtn').style.display='inline-block';
@@ -502,6 +505,7 @@ function resetGame(){
     gameActive=false; isPaused=false; clearInterval(timer);
     score=0; lives=3; level=1; timeLeft=getLevelConfig().time;
     arr=randomArray(); done=false; index=0; lastUnsorted=arr.length-1;
+    zeroScoreFailCount=0; // RESET: Reset game, clear zero-score fails
     document.getElementById('gameControls').style.display='none';
     document.getElementById('startBtn').style.display='inline-block';
     document.getElementById('stopBtn').style.display='none';
@@ -570,6 +574,7 @@ function handleAnswer(swap){
         const multiplier=Math.min(streak+1,10);
         const points=10*level*multiplier;
         score+=points; streak++; maxCombo=Math.max(maxCombo,streak);
+        zeroScoreFailCount=0; // RESET: Player got correct, clear zero-score fails
         playSound('correct'); updatePlayerEmotion('happy');
         if(needSwap){
             [arr[index],arr[index+1]]=[arr[index+1],arr[index]];
@@ -582,14 +587,36 @@ function handleAnswer(swap){
         index++; nextBubble(); draw();
     } else {
         levelWrong++; lives--; streak=0;
-        playSound('wrong'); flashBall(index,'wrong'); flashBall(index+1,'wrong');
-        updatePlayerEmotion('cry'); score-=10; updateDisplay();
-        const msgEl=document.getElementById('message');
-        msgEl.classList.remove('shake'); void msgEl.offsetWidth; msgEl.classList.add('shake');
-        const correctAction=needSwap?'SWAP ⚽':'KEEP ✋';
-        msgEl.innerHTML=`❌ WRONG! -10 pts | Correct: <b>${correctAction}</b> — Try again! (Score: ${score})`;
-        setTimeout(()=>{ updatePlayerEmotion('neutral'); msgEl.classList.remove('shake'); },800);
-        if(lives<=0) setTimeout(()=>{ showBrokenHeart(); endGame('Red card! No lives left!'); },500);
+        
+        // NEW: Check if score is already at 0
+        if(score===0){
+            zeroScoreFailCount++;
+            playSound('wrong'); flashBall(index,'wrong'); flashBall(index+1,'wrong');
+            updatePlayerEmotion('cry'); updateDisplay();
+            const msgEl=document.getElementById('message');
+            msgEl.classList.remove('shake'); void msgEl.offsetWidth; msgEl.classList.add('shake');
+            const correctAction=needSwap?'SWAP ⚽':'KEEP ✋';
+            msgEl.innerHTML=`❌ WRONG! Score stays at 0 | Correct: <b>${correctAction}</b> | Strikes: ${zeroScoreFailCount}/3`;
+            setTimeout(()=>{ updatePlayerEmotion('neutral'); msgEl.classList.remove('shake'); },800);
+            
+            // Check if 3 strikes reached at zero score
+            if(zeroScoreFailCount>=3){
+                setTimeout(()=>{ showBrokenHeart(); endGame('🚨 3 strikes at zero! Game over!'); },500);
+            }
+            if(lives<=0) setTimeout(()=>{ showBrokenHeart(); endGame('Red card! No lives left!'); },500);
+        } else {
+            // Score was above 0, deduct normally
+            score=Math.max(0, score-10); // FIXED: Score cannot go below 0
+            zeroScoreFailCount=0; // RESET: Not at zero anymore, clear strikes
+            playSound('wrong'); flashBall(index,'wrong'); flashBall(index+1,'wrong');
+            updatePlayerEmotion('cry'); updateDisplay();
+            const msgEl=document.getElementById('message');
+            msgEl.classList.remove('shake'); void msgEl.offsetWidth; msgEl.classList.add('shake');
+            const correctAction=needSwap?'SWAP ⚽':'KEEP ✋';
+            msgEl.innerHTML=`❌ WRONG! -10 pts | Correct: <b>${correctAction}</b> — Try again! (Score: ${score})`;
+            setTimeout(()=>{ updatePlayerEmotion('neutral'); msgEl.classList.remove('shake'); },800);
+            if(lives<=0) setTimeout(()=>{ showBrokenHeart(); endGame('Red card! No lives left!'); },500);
+        }
     }
 }
 
