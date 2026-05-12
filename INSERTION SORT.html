@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Royal Card Sort: Master Edition</title>
+    <style>
+        :root {
+            --felt: #076324;
+            --gold: #d4af37;
+            --wood: #3d1f05;
+            --cream: #f5f5dc;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: var(--felt);
+            background-image: radial-gradient(circle, #0a8a32 0%, #064d1c 100%);
+            color: white;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Screens */
+        #welcome-screen, #pause-screen, #modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #welcome-screen { background: var(--wood); border: 10px double var(--gold); box-sizing: border-box; }
+
+        /* UI Elements */
+        #ui-bar {
+            width: 100%;
+            padding: 15px;
+            background: var(--wood);
+            border-bottom: 4px solid var(--gold);
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.3rem;
+            z-index: 5;
+        }
+
+        .hint-box {
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid var(--gold);
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            max-width: 600px;
+            display: none;
+        }
+
+        /* Cards */
+        .card-container {
+            display: flex;
+            gap: 12px;
+            margin-top: 50px;
+            min-height: 180px;
+        }
+
+        .card {
+            width: 90px;
+            height: 140px;
+            background: white;
+            border-radius: 8px;
+            color: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 8px;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.5);
+            cursor: grab;
+            border: 1px solid #999;
+        }
+
+        .card.red { color: #d12d2d; }
+        .card.black { color: #1a1a1a; }
+        .card .suit { font-size: 2rem; align-self: center; }
+
+        /* Buttons */
+        button {
+            background: var(--gold);
+            color: var(--wood);
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 20px;
+            transition: 0.2s;
+        }
+        button:hover { transform: scale(1.05); background: white; }
+
+        #leaderboard {
+            position: fixed;
+            bottom: 10px; right: 10px;
+            background: rgba(0,0,0,0.6);
+            padding: 10px;
+            border: 1px solid var(--gold);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Welcome Screen -->
+<div id="welcome-screen">
+    <h1 style="color: var(--gold); font-size: 4rem; margin: 0;">ROYAL CARD SORT</h1>
+    <p style="font-size: 1.5rem;">Can you master the <b>Insertion Sort</b> algorithm?</p>
+    <p style="max-width: 500px;">Sort cards from lowest to highest. Don't make a mistake, or the dealer will penalize your score!</p>
+    <button onclick="startGame()">START GAME</button>
+</div>
+
+<!-- Pause Screen -->
+<div id="pause-screen" style="display: none;">
+    <h1 style="color: var(--gold);">TABLE PAUSED</h1>
+    <button onclick="togglePause()">RESUME PLAY</button>
+</div>
+
+<!-- Win Modal -->
+<div id="modal" style="display: none;">
+    <h2 id="modal-title" style="color: var(--gold); font-size: 3rem;">LEVEL CLEARED!</h2>
+    <div id="stars" style="font-size: 2.5rem; margin: 10px;"></div>
+    <p id="modal-msg" style="font-size: 1.2rem;"></p>
+    <button onclick="nextLevel()">NEXT LEVEL</button>
+</div>
+
+<div id="ui-bar">
+    <div>LEVEL: <span id="lvl">1</span></div>
+    <div>TIME: <span id="timer">120</span>s</div>
+    <div>SCORE: <span id="score">0</span></div>
+</div>
+
+<div id="beginner-hint" class="hint-box">
+    💡 <b>Hint:</b> Start from the left. Pick a card and "insert" it between two cards where the left one is smaller and the right one is larger!
+</div>
+
+<div class="card-container" id="table"></div>
+
+<div style="margin-top: 30px;">
+    <button style="padding: 10px 20px;" onclick="togglePause()">PAUSE</button>
+    <button style="padding: 10px 20px;" onclick="resetGame()">RESET</button>
+    <button style="padding: 10px 20px; background: #900; color: white;" onclick="confirmQuit()">QUIT</button>
+</div>
+
+<div id="leaderboard">
+    <div style="color: var(--gold);">TOP DEALERS</div>
+    <div id="scores-list"></div>
+</div>
+
+<!-- Audio -->
+<audio id="cheerSound" src="https://www.myinstants.com/media/sounds/cheer.mp3"></audio>
+
+<script>
+    let score = 0;
+    let level = 1;
+    let timeLeft = 120;
+    let timer;
+    let isPaused = false;
+    let deck = [];
+    const suits = ['♠', '♥', '♣', '♦'];
+    const cheerSound = document.getElementById('cheerSound');
+
+    function startGame() {
+        document.getElementById('welcome-screen').style.display = 'none';
+        initLevel();
+    }
+
+    function initLevel() {
+        // Time logic: 120s level 1, then -15s each level. Min 30s.
+        timeLeft = Math.max(120 - (level - 1) * 15, 30);
+        
+        // Show hint only on Level 1
+        document.getElementById('beginner-hint').style.display = (level === 1) ? 'block' : 'none';
+        
+        updateUI();
+        const cardCount = Math.min(3 + level, 10);
+        deck = Array.from({length: cardCount}, () => ({
+            val: Math.floor(Math.random() * 10) + 1,
+            suit: suits[Math.floor(Math.random() * 4)]
+        }));
+        
+        render();
+        startTimer();
+    }
+
+    function render() {
+        const table = document.getElementById('table');
+        table.innerHTML = '';
+        deck.forEach((card, i) => {
+            const div = document.createElement('div');
+            const color = (card.suit === '♥' || card.suit === '♦') ? 'red' : 'black';
+            div.className = `card ${color}`;
+            div.draggable = true;
+            div.innerHTML = `<div>${card.val}</div><div class="suit">${card.suit}</div><div style="transform:rotate(180deg)">${card.val}</div>`;
+            
+            div.ondragstart = (e) => { if(!isPaused) e.dataTransfer.setData('text', i); };
+            div.ondragover = (e) => e.preventDefault();
+            div.ondrop = (e) => {
+                const from = parseInt(e.dataTransfer.getData('text'));
+                processMove(from, i);
+            };
+            table.appendChild(div);
+        });
+    }
+
+    function processMove(from, to) {
+        if (from === to) return;
+
+        const cardVal = deck[from].val;
+        const tempDeck = [...deck];
+        const [movedCard] = tempDeck.splice(from, 1);
+        tempDeck.splice(to, 0, movedCard);
+
+        // Insertion Sort Correctness Check
+        let prevVal = (to > 0) ? tempDeck[to-1].val : 0;
+        let nextVal = (to < tempDeck.length - 1) ? tempDeck[to+1].val : 11;
+
+        if (cardVal >= prevVal && cardVal <= nextVal) {
+            score += 10;
+            deck = tempDeck;
+            // Play cheer sound for correct insertion
+            cheerSound.currentTime = 0;
+            cheerSound.play().catch(() => {}); // Catch block if browser blocks auto-audio
+        } else {
+            score -= 10;
+            alert("❌ Incorrect Position! Penalty -10 points.");
+        }
+
+        updateUI();
+        render();
+
+        const isSorted = deck.every((c, i) => i === 0 || c.val >= deck[i-1].val);
+        if (isSorted) win();
+    }
+
+    function startTimer() {
+        clearInterval(timer);
+        timer = setInterval(() => {
+            if (!isPaused) {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft;
+                if (timeLeft <= 0) endGame("Time's Up!");
+            }
+        }, 1000);
+    }
+
+    function togglePause() {
+        isPaused = !isPaused;
+        document.getElementById('pause-screen').style.display = isPaused ? 'flex' : 'none';
+    }
+
+    function win() {
+        clearInterval(timer);
+        const modal = document.getElementById('modal');
+        const starCount = timeLeft > 60 ? 5 : 3;
+        document.getElementById('stars').innerText = "⭐".repeat(starCount);
+        document.getElementById('modal-msg').innerText = `Perfectly Sorted! Level ${level} Score: ${score}`;
+        modal.style.display = 'flex';
+        saveScore();
+    }
+
+    function nextLevel() {
+        level++;
+        document.getElementById('modal').style.display = 'none';
+        initLevel();
+    }
+
+    function resetGame() {
+        if(confirm("Restart from Level 1?")) {
+            score = 0; level = 1;
+            document.getElementById('modal').style.display = 'none';
+            initLevel();
+        }
+    }
+
+    function confirmQuit() {
+        if(confirm("Are you sure you want to quit the game?")) {
+            location.reload();
+        }
+    }
+
+    function updateUI() {
+        document.getElementById('score').innerText = score;
+        document.getElementById('lvl').innerText = level;
+        document.getElementById('timer').innerText = timeLeft;
+    }
+
+    function saveScore() {
+        let list = JSON.parse(localStorage.getItem('royalSortScores') || '[]');
+        list.push(score);
+        list.sort((a,b) => b-a);
+        localStorage.setItem('royalSortScores', JSON.stringify(list.slice(0, 5)));
+        loadLeaderboard();
+    }
+
+    function loadLeaderboard() {
+        const list = JSON.parse(localStorage.getItem('royalSortScores') || '[]');
+        document.getElementById('scores-list').innerHTML = list.map((s, i) => `<div>#${i+1}: ${s} pts</div>`).join('');
+    }
+
+    loadLeaderboard();
+</script>
+</body>
+</html>
