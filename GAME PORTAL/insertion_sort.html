@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Insertion Sort Adventure</title>
+
+  <style>
+    :root{
+      --bg1:#08111f;
+      --bg2:#1b2c51;
+      --panel:rgba(14,20,36,.8);
+      --line:rgba(255,255,255,.12);
+      --text:#f6f8ff;
+      --muted:#b9c2db;
+      --accent:#76d9ff;
+      --warn:#ffd36a;
+      --shadow:0 16px 48px rgba(0,0,0,.35);
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top,#274b9b 0%,transparent 34%),
+        linear-gradient(160deg,var(--bg1),var(--bg2));
+      overflow-x:hidden;
+    }
+
+    .stars{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.7;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.75) 0 1px, transparent 1px),
+        radial-gradient(circle at 70% 15%, rgba(255,255,255,.65) 0 1px, transparent 1px),
+        radial-gradient(circle at 35% 75%, rgba(255,255,255,.55) 0 1px, transparent 1px),
+        radial-gradient(circle at 85% 65%, rgba(255,255,255,.55) 0 1px, transparent 1px);
+      background-size:280px 280px;
+      animation:drift 18s linear infinite;
+    }
+
+    @keyframes drift{
+      from{ transform:translateY(0); }
+      to{ transform:translateY(-40px); }
+    }
+
+    .app{
+      width:min(1100px,calc(100% - 24px));
+      margin:16px auto 40px;
+      display:grid;
+      gap:16px;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(14px);
+    }
+
+    .hero, .controls, .game, .shop{ padding:18px; }
+
+    .hero{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    h1{ font-size:clamp(2rem,4vw,3.4rem); margin:0; }
+    h2{ font-size:1.3rem; margin:0; }
+
+    .subtitle{ color:var(--muted); margin-top:6px; }
+    .mini, .label{ color:var(--muted); font-size:.78rem; }
+    .label{ text-transform:uppercase; letter-spacing:.08em; margin-bottom:4px; }
+
+    .pet-badge{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:14px 16px;
+      border-radius:18px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .pet-emoji{ font-size:2.7rem; }
+    .pet-name{ font-size:1.2rem; font-weight:800; }
+
+    .row{
+      display:grid;
+      gap:14px;
+      grid-template-columns:1.2fr 1.2fr auto;
+      align-items:end;
+    }
+
+    input, select, button{ font:inherit; }
+    input, select{
+      width:100%;
+      border:none;
+      background:rgba(255,255,255,.1);
+      color:var(--text);
+      border-radius:14px;
+      padding:12px 14px;
+    }
+
+    .inline{ display:flex; gap:10px; flex-wrap:wrap; }
+
+    button{
+      border:none;
+      border-radius:14px;
+      padding:12px 16px;
+      cursor:pointer;
+      color:var(--text);
+      background:rgba(255,255,255,.12);
+      transition:transform .15s ease, background .15s ease;
+    }
+
+    button:hover{ transform:translateY(-1px); background:rgba(255,255,255,.18); }
+    .primary{ background:linear-gradient(135deg,var(--accent),#7d8cff); color:#06101f; font-weight:900; }
+    .danger{ background:linear-gradient(135deg,#ff7f9d,#ff4f6f); }
+
+    .hud{
+      margin-top:16px;
+      display:grid;
+      gap:12px;
+      grid-template-columns:repeat(5,minmax(0,1fr));
+    }
+
+    .hud-card{
+      padding:14px;
+      border-radius:18px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .hud-card span{ display:block; color:var(--muted); font-size:.8rem; margin-bottom:4px; }
+    .hud-card strong{ font-size:1.4rem; }
+
+    .lives-display{ font-size:1.5rem; letter-spacing:4px; }
+    .life-lost{ opacity:0.2; }
+
+    .message{
+      min-height:46px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:10px 14px;
+      border-radius:16px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.08);
+      margin-bottom:14px;
+    }
+
+    .board{
+      display:grid;
+      gap:24px;
+      padding:24px;
+      border-radius:20px;
+      background:rgba(255,255,255,.05);
+      text-align:center;
+    }
+
+    .board-line{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-items:center; }
+
+    .card{
+      min-width:64px;
+      padding:20px 14px;
+      text-align:center;
+      font-weight:900;
+      font-size:1.4rem;
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.05));
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .card.active-key {
+        border-color: var(--warn);
+        box-shadow: 0 0 15px var(--warn);
+        transform: scale(1.1);
+        z-index: 2;
+    }
+
+    .card.sorted {
+        border-color: var(--accent);
+        background: rgba(118, 217, 255, 0.1);
+    }
+
+    .action-row {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 20px;
+    }
+
+    .key-wrap{ display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+    .key-card{ padding:14px 18px; border-radius:18px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.08); }
+    .key-value{ font-size:2rem; font-weight:900; color:var(--warn); }
+
+    .shop-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+    .pet-card{ padding:14px; background:rgba(255,255,255,.06); border-radius:18px; text-align:center; border:1px solid rgba(255,255,255,.08); }
+    .pet-card.owned{ outline:2px solid var(--accent); }
+    .pet-icon{ font-size:2.4rem; }
+
+    .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.55); display:grid; place-items:center; padding:16px; z-index:20; }
+    .hidden{ display:none; }
+    .popup{ width:min(620px,100%); padding:22px; background:rgba(14,20,36,.96); border-radius:24px; }
+
+    .go-popup{
+      width:min(660px,100%);
+      padding:28px 24px;
+      background:rgba(10,14,28,.97);
+      border:1px solid rgba(255,100,130,.25);
+      border-radius:28px;
+      box-shadow:0 0 60px rgba(255,80,110,.15);
+    }
+    .go-title{ font-size:2.4rem; font-weight:900; color:#ff7f9d; text-align:center; }
+    .go-reason{ text-align:center; color:var(--muted); margin:0 0 22px; }
+    .scoreboard{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:22px; }
+    .score-card{ padding:16px; border-radius:18px; background:rgba(255,255,255,.06); text-align:center; }
+    .score-card.winner{ border: 1px solid var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+    @media (max-width:820px){
+      .row, .hud{ grid-template-columns:1fr; }
+      .hud{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="stars"></div>
+
+  <main class="app">
+    <section class="hero panel">
+      <div>
+        <h1>Insertion Sort Adventure</h1>
+        <p class="subtitle">Shift cards left until they are in the correct order!</p>
+      </div>
+      <div class="pet-badge">
+        <div id="petEmoji" class="pet-emoji">🐱</div>
+        <div>
+          <div class="label">Active Pet</div>
+          <div id="petName" class="pet-name">Cat</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel controls">
+      <div class="row">
+        <label>Player <select id="playerSelect"></select></label>
+        <label>New Player
+          <div class="inline">
+            <input id="newPlayer" maxlength="24" placeholder="Type name" />
+            <button id="addPlayerBtn">Add</button>
+          </div>
+        </label>
+        <div class="inline">
+          <button id="startBtn" class="primary">Start Game</button>
+          <button id="helpBtn">How to Play</button>
+          <button id="musicBtn">Music: Off</button>
+          <button id="stopBtn" class="danger">Stop</button>
+        </div>
+      </div>
+
+      <div class="hud">
+        <div class="hud-card"><span>Level</span><strong id="levelValue">1 / 50</strong></div>
+        <div class="hud-card"><span>Timer</span><strong id="timerValue">60</strong></div>
+        <div class="hud-card"><span>Bank (Pts)</span><strong id="pointsValue">0</strong></div>
+        <div class="hud-card"><span>High Score</span><strong id="highScoreValue">0</strong></div>
+        <div class="hud-card"><span>Lives</span><strong id="livesValue"><span class="lives-display">❤️❤️❤️</span></strong></div>
+      </div>
+    </section>
+
+    <section class="panel game">
+      <div id="message" class="message">Create or select a player to begin.</div>
+      <div class="board">
+        <div id="boardArea"></div>
+        <div class="action-row" id="gameActions"></div>
+        <div class="key-wrap">
+          <div class="key-card">
+            <div class="label">Sorting Key</div>
+            <div id="keyValue" class="key-value">-</div>
+          </div>
+          <div class="mini">Standard Insertion Sort Rules: Numbers to the left must be smaller!</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel shop">
+      <h2>Pet Shop</h2>
+      <div id="shopGrid" class="shop-grid"></div>
+    </section>
+  </main>
+
+  <!-- Overlays -->
+  <div id="overlay" class="overlay hidden">
+    <div class="popup panel">
+      <h2 id="overlayTitle">Level Up</h2>
+      <p id="overlayMsg"></p>
+      <button id="overlayBtn" class="primary">Continue</button>
+    </div>
+  </div>
+
+  <div id="tutorial" class="overlay hidden">
+    <div class="popup panel">
+      <h2>How to Play (Standard Insertion Sort)</h2>
+      <p>1. The <b>Key Card</b> (yellow) is the one you are currently sorting.<br>
+         2. Use <b>Shift Left</b> if the card to the left is larger than the Key.<br>
+         3. Use <b>Place Card</b> once the card to the left is smaller (or you are at the start).<br>
+         4. If you place it incorrectly, you lose a life!<br>
+         5. Clear the whole array to finish the level.</p>
+      <button id="tutorialBtn" class="primary">Got it</button>
+    </div>
+  </div>
+
+  <div id="gameOverOverlay" class="overlay hidden">
+    <div class="go-popup">
+      <h2 class="go-title">💀 Game Over</h2>
+      <p id="goReason" class="go-reason"></p>
+      <div id="goScoreboard" class="scoreboard"></div>
+      <div class="go-actions">
+        <button id="goNewGameBtn" class="primary">🔄 Retry</button>
+        <button id="goQuitBtn" class="danger">🚪 Quit</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "insertion_sort_v2";
+    const TOTAL_LEVELS = 50;
+    const MAX_LIVES = 3;
+
+    // --- Audio ---
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    let isMusicPlaying = false;
+    let musicTimeout = null;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new AudioCtx();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playPeep(freq = 440, type = 'sine', duration = 0.1, volume = 0.1) {
+      initAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function toggleMusic() {
+      initAudio();
+      isMusicPlaying = !isMusicPlaying;
+      el.musicBtn.textContent = isMusicPlaying ? "Music: On" : "Music: Off";
+      if (isMusicPlaying) playSequence();
+      else clearTimeout(musicTimeout);
+    }
+
+    function playSequence() {
+      if (!isMusicPlaying) return;
+      const notes = [261.63, 329.63, 392.00, 523.25];
+      const note = notes[Math.floor(Math.random() * notes.length)];
+      playPeep(note / 2, 'triangle', 0.5, 0.03);
+      musicTimeout = setTimeout(playSequence, 600);
+    }
+
+    // --- Data ---
+    const pets = [
+      { name:"Cat", emoji:"🐱", cost:0 },
+      { name:"Bunny", emoji:"🐰", cost:300 },
+      { name:"Fox", emoji:"🦊", cost:500 },
+      { name:"Panda", emoji:"🐼", cost:750 },
+      { name:"Bear", emoji:"🐻", cost:1000 },
+      { name:"Dino", emoji:"🦕", cost:1300 },
+      { name:"Penguin", emoji:"🐧", cost:1700 },
+      { name:"Koala", emoji:"🐨", cost:2200 },
+      { name:"Tiger", emoji:"🐯", cost:2800 },
+      { name:"Wolf", emoji:"🐺", cost:3500 },
+      { name:"Elephant", emoji:"🐘", cost:4300 },
+      { name:"Horse", emoji:"🐴", cost:5200 },
+      { name:"Frog", emoji:"🐸", cost:6200 },
+      { name:"Monkey", emoji:"🐵", cost:7400 },
+      { name:"Parrot", emoji:"🦜", cost:8800 },
+      { name:"Rabbit", emoji:"🐇", cost:10400 },
+      { name:"Otter", emoji:"🦦", cost:12200 },
+      { name:"Unicorn", emoji:"🦄", cost:14500 },
+      { name:"Dragon", emoji:"🐲", cost:17500 },
+      { name:"Phoenix", emoji:"🔥", cost:21000 }
+    ];
+
+    const state = {
+      players:{},
+      currentPlayer:"",
+      running:false,
+      level:1,
+      timer:60,
+      board:[],
+      currentIndex:1,
+      scanIndex:1,
+      timerId:null,
+      lives:MAX_LIVES,
+      sessionScore:0
+    };
+
+    const el = {
+      playerSelect:document.getElementById("playerSelect"),
+      newPlayer:document.getElementById("newPlayer"),
+      addPlayerBtn:document.getElementById("addPlayerBtn"),
+      startBtn:document.getElementById("startBtn"),
+      helpBtn:document.getElementById("helpBtn"),
+      musicBtn:document.getElementById("musicBtn"),
+      stopBtn:document.getElementById("stopBtn"),
+      levelValue:document.getElementById("levelValue"),
+      timerValue:document.getElementById("timerValue"),
+      pointsValue:document.getElementById("pointsValue"),
+      highScoreValue:document.getElementById("highScoreValue"),
+      livesValue:document.getElementById("livesValue"),
+      message:document.getElementById("message"),
+      boardArea:document.getElementById("boardArea"),
+      gameActions:document.getElementById("gameActions"),
+      keyValue:document.getElementById("keyValue"),
+      shopGrid:document.getElementById("shopGrid"),
+      petEmoji:document.getElementById("petEmoji"),
+      petName:document.getElementById("petName"),
+      overlay:document.getElementById("overlay"),
+      overlayTitle:document.getElementById("overlayTitle"),
+      overlayMsg:document.getElementById("overlayMsg"),
+      overlayBtn:document.getElementById("overlayBtn"),
+      tutorial:document.getElementById("tutorial"),
+      tutorialBtn:document.getElementById("tutorialBtn"),
+      gameOverOverlay:document.getElementById("gameOverOverlay"),
+      goReason:document.getElementById("goReason"),
+      goScoreboard:document.getElementById("goScoreboard"),
+      goNewGameBtn:document.getElementById("goNewGameBtn"),
+      goQuitBtn:document.getElementById("goQuitBtn")
+    };
+
+    function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.players)); }
+    function load() { state.players = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+    function current() { return state.players[state.currentPlayer]; }
+
+    function updateHUD() {
+      const p = current();
+      el.levelValue.textContent = `${state.level} / ${TOTAL_LEVELS}`;
+      el.timerValue.textContent = state.timer;
+      
+      // LOGIC: Show (Current Level Points) [Total Points] when playing
+      if (p) {
+        const total = p.points;
+        el.pointsValue.textContent = state.running ? `(${state.sessionScore}) ${total}` : total;
+        el.highScoreValue.textContent = p.highScore;
+        
+        const pet = pets.find(x => x.name === p.activePet);
+        if (pet) { el.petEmoji.textContent = pet.emoji; el.petName.textContent = pet.name; }
+      }
+
+      let livesH = '';
+      for(let i=0; i<MAX_LIVES; i++) livesH += `<span class="${i < state.lives ? '' : 'life-lost'}">❤️</span>`;
+      el.livesValue.innerHTML = `<span class="lives-display">${livesH}</span>`;
+    }
+
+    function renderBoard() {
+      el.boardArea.innerHTML = "";
+      el.gameActions.innerHTML = "";
+      if (!state.running) return;
+
+      const container = document.createElement("div");
+      container.className = "board-line";
+      
+      state.board.forEach((val, idx) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        if (idx < state.currentIndex) card.classList.add("sorted");
+        if (idx === state.scanIndex) {
+            card.classList.add("active-key");
+            el.keyValue.textContent = val;
+        }
+        card.textContent = val;
+        container.appendChild(card);
+      });
+      el.boardArea.appendChild(container);
+
+      const btnLeft = document.createElement("button");
+      btnLeft.textContent = "⬅️ Shift Left";
+      btnLeft.onclick = handleShiftLeft;
+
+      const btnPlace = document.createElement("button");
+      btnPlace.className = "primary";
+      btnPlace.textContent = "✅ Place Card";
+      btnPlace.onclick = handlePlace;
+
+      el.gameActions.appendChild(btnLeft);
+      el.gameActions.appendChild(btnPlace);
+    }
+
+    function handleShiftLeft() {
+        const j = state.scanIndex;
+        if (j > 0) {
+            if (state.board[j] < state.board[j-1]) {
+                [state.board[j], state.board[j-1]] = [state.board[j-1], state.board[j]];
+                state.scanIndex--;
+                state.sessionScore += 20;
+                playPeep(600, 'sine', 0.1);
+                renderBoard();
+                updateHUD();
+            } else {
+                penalty("Wrong! The card to the left is already smaller.");
+            }
+        } else {
+            penalty("You are already at the start!");
+        }
+    }
+
+    function handlePlace() {
+        const j = state.scanIndex;
+        if (j === 0 || state.board[j] >= state.board[j-1]) {
+            playPeep(800, 'sine', 0.15);
+            state.currentIndex++;
+            state.scanIndex = state.currentIndex;
+            state.sessionScore += 100;
+
+            if (state.currentIndex >= state.board.length) {
+                finishLevel();
+            } else {
+                el.message.textContent = "Correct! Next element...";
+                renderBoard();
+            }
+        } else {
+            penalty("Not yet! There is still a larger number to the left.");
+        }
+        updateHUD();
+    }
+
+    function penalty(msg) {
+        state.lives--;
+        state.sessionScore = Math.max(0, state.sessionScore - 50);
+        el.message.textContent = msg;
+        playPeep(150, 'sawtooth', 0.2);
+        if (state.lives <= 0) triggerGameOver("Out of lives!");
+        updateHUD();
+    }
+
+    function startLevel(lvl) {
+      if (!state.currentPlayer) return;
+      clearInterval(state.timerId);
+      state.level = lvl;
+      state.timer = Math.max(20, 70 - (lvl * 2));
+      
+      const count = Math.min(12, 4 + Math.floor(lvl/2));
+      state.board = Array.from({length: count}, () => Math.floor(Math.random() * 90) + 10);
+      
+      state.currentIndex = 1;
+      state.scanIndex = 1;
+      state.running = true;
+      el.message.textContent = `Level ${lvl}: Sort the sequence!`;
+      
+      renderBoard();
+      updateHUD();
+      state.timerId = setInterval(() => {
+        state.timer--;
+        updateHUD();
+        if (state.timer <= 0) triggerGameOver("Ran out of time!");
+      }, 1000);
+    }
+
+    function finishLevel() {
+      clearInterval(state.timerId);
+      state.running = false;
+      const bonus = 200 + (state.level * 50);
+      state.sessionScore += bonus;
+      
+      // SAVE POINTS IMMEDIATELY AFTER LEVEL COMPLETION
+      const p = current();
+      if(p) {
+          p.points += state.sessionScore;
+          if(state.sessionScore > p.highScore) p.highScore = state.sessionScore;
+          state.sessionScore = 0; // Reset session score as it's now banked
+          save();
+      }
+      
+      updateHUD();
+      renderShop();
+
+      if (state.level >= TOTAL_LEVELS) {
+        showOverlay("🏆 Grand Champion!", "You sorted everything!", "Finish", init);
+      } else {
+        showOverlay("Level Complete!", `Bonus: +${bonus} points added to your bank!`, "Next Level", () => startLevel(state.level + 1));
+      }
+    }
+
+    function triggerGameOver(reason) {
+      clearInterval(state.timerId);
+      state.running = false;
+      el.goReason.textContent = reason;
+      
+      // Save what you earned before you died
+      const p = current();
+      if(p) {
+          p.points += state.sessionScore;
+          if(state.sessionScore > p.highScore) p.highScore = state.sessionScore;
+          state.sessionScore = 0;
+          save();
+      }
+      
+      el.goScoreboard.innerHTML = "";
+      Object.values(state.players).sort((a,b) => b.highScore - a.highScore).slice(0,4).forEach(plr => {
+          const div = document.createElement("div");
+          div.className = "score-card" + (plr.name === state.currentPlayer ? " winner" : "");
+          div.innerHTML = `<strong>${plr.name}</strong><br>${plr.highScore}`;
+          el.goScoreboard.appendChild(div);
+      });
+
+      el.gameOverOverlay.classList.remove("hidden");
+      updateHUD();
+      renderShop();
+    }
+
+    function showOverlay(title, msg, btnText, action) {
+        el.overlayTitle.textContent = title;
+        el.overlayMsg.textContent = msg;
+        el.overlayBtn.textContent = btnText;
+        el.overlayBtn.onclick = () => { el.overlay.classList.add("hidden"); action(); };
+        el.overlay.classList.remove("hidden");
+    }
+
+    function renderShop() {
+      el.shopGrid.innerHTML = "";
+      const p = current();
+      pets.forEach(pet => {
+        const owned = p?.inventory[pet.name];
+        const isEquipped = p?.activePet === pet.name;
+
+        const card = document.createElement("div");
+        card.className = "pet-card" + (owned ? " owned" : "");
+        card.innerHTML = `
+            <div class="pet-icon">${pet.emoji}</div>
+            <strong>${pet.name}</strong>
+            <div class="mini">${pet.cost} pts</div>
+            <button class="${owned ? '' : 'primary'}">
+                ${owned ? (isEquipped ? "Selected" : "Equip") : "Buy"}
+            </button>`;
+
+        card.querySelector("button").onclick = () => {
+          if (!p) return;
+          if (!owned) {
+            if (p.points >= pet.cost) {
+              p.points -= pet.cost; 
+              p.inventory[pet.name] = true; 
+              p.activePet = pet.name;
+              playPeep(700, 'sine', 0.2);
+              el.message.textContent = `New companion unlocked: ${pet.name}!`;
+            } else { 
+              el.message.textContent = "You need more points to unlock this pet!"; 
+              return; 
+            }
+          } else { 
+            p.activePet = pet.name; 
+          }
+          save(); 
+          updateHUD(); 
+          renderShop();
+        };
+        el.shopGrid.appendChild(card);
+      });
+    }
+
+    el.addPlayerBtn.onclick = () => {
+      const name = el.newPlayer.value.trim();
+      if (!name) return;
+      if (!state.players[name]) state.players[name] = { name, points:0, highScore:0, inventory:{Cat:true}, activePet:"Cat" };
+      state.currentPlayer = name;
+      el.newPlayer.value = "";
+      save(); init();
+    };
+
+    el.playerSelect.onchange = (e) => { 
+        state.currentPlayer = e.target.value; 
+        state.running = false; 
+        state.sessionScore = 0;
+        updateHUD(); 
+        renderShop(); 
+    };
+
+    el.startBtn.onclick = () => { 
+        if(!state.currentPlayer) return alert("Select player!"); 
+        state.lives = MAX_LIVES; 
+        state.sessionScore = 0; 
+        startLevel(1); 
+    };
+
+    el.stopBtn.onclick = () => { 
+        clearInterval(state.timerId); 
+        state.running = false; 
+        state.sessionScore = 0; 
+        updateHUD(); 
+        renderBoard(); 
+    };
+
+    el.helpBtn.onclick = () => el.tutorial.classList.remove("hidden");
+    el.tutorialBtn.onclick = () => el.tutorial.classList.add("hidden");
+    el.musicBtn.onclick = toggleMusic;
+    el.goNewGameBtn.onclick = () => { el.gameOverOverlay.classList.add("hidden"); el.startBtn.click(); };
+    el.goQuitBtn.onclick = () => { el.gameOverOverlay.classList.add("hidden"); };
+
+    function init() {
+      load();
+      const names = Object.keys(state.players).sort();
+      el.playerSelect.innerHTML = '<option value="">Select Player</option>' + names.map(n => `<option value="${n}">${n}</option>`).join("");
+      if (state.currentPlayer) el.playerSelect.value = state.currentPlayer;
+      updateHUD();
+      renderShop();
+    }
+
+    init();
+  </script>
+</body>
+</html>
