@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Insertion Sort Adventure</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #04060f;
+      --neon: #00f5ff;
+      --neon2: #7c3aed;
+      --warn: #fbbf24;
+      --danger: #f43f5e;
+      --success: #10b981;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --panel: rgba(8,13,26,0.88);
+      --border: rgba(0,245,255,0.12);
+      --font-d: 'Orbitron', monospace;
+      --font-b: 'Rajdhani', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: var(--font-b);
+      color: var(--text);
+      background: var(--bg-deep);
+      overflow-x: hidden;
+      font-size: 16px;
+    }
+
+    /* ── Background ── */
+    .grid-bg {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .grid-bg::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 40% at 50% 0%, rgba(124,58,237,.35) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 30% at 20% 80%, rgba(0,245,255,.12) 0%, transparent 50%);
+    }
+    .grid-lines {
+      position: absolute; bottom: 0; left: -50%; width: 200%; height: 55%;
+      background-image:
+        linear-gradient(rgba(0,245,255,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,255,.06) 1px, transparent 1px);
+      background-size: 60px 60px;
+      transform: perspective(500px) rotateX(60deg);
+      transform-origin: bottom;
+      animation: grid-move 8s linear infinite;
+    }
+    @keyframes grid-move {
+      from { background-position: 0 0; }
+      to   { background-position: 0 60px; }
+    }
+    .scanlines {
+      position: fixed; inset: 0; pointer-events: none; z-index: 999;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.025) 2px, rgba(0,0,0,.025) 4px);
+    }
+    .flash {
+      position: fixed; inset: 0; pointer-events: none; z-index: 998; opacity: 0;
+    }
+    .flash.flash-good { animation: flash-good .5s ease; }
+    .flash.flash-bad  { animation: flash-bad  .5s ease; }
+    @keyframes flash-good { 0%{background:rgba(16,185,129,.18);opacity:1} 100%{opacity:0} }
+    @keyframes flash-bad  { 0%{background:rgba(244, 63,94,.22);opacity:1} 100%{opacity:0} }
+
+    /* ── Layout ── */
+    .app {
+      position: relative; z-index: 1;
+      width: min(1100px, calc(100% - 24px));
+      margin: 0 auto;
+      padding: 20px 0 60px;
+      display: grid; gap: 16px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      backdrop-filter: blur(18px);
+      box-shadow: 0 8px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(0,245,255,.05);
+    }
+    .hero, .controls, .game, .shop { padding: 20px 24px; }
+
+    /* ── Hero ── */
+    .hero {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 16px; flex-wrap: wrap;
+      border-top: 3px solid var(--neon);
+      box-shadow: 0 -3px 20px rgba(0,245,255,.2), 0 8px 40px rgba(0,0,0,.4);
+    }
+    h1 {
+      font-family: var(--font-d);
+      font-size: clamp(1.5rem, 4vw, 2.6rem);
+      font-weight: 900; letter-spacing: .04em;
+      background: linear-gradient(135deg, var(--neon), #a78bfa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .subtitle { color: var(--muted); font-size: .9rem; margin-top: 5px; letter-spacing: .05em; }
+
+    /* ── Pet badge ── */
+    .pet-badge {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 20px; border-radius: 16px;
+      background: rgba(0,245,255,.04); border: 1px solid rgba(0,245,255,.14);
+    }
+    .pet-emoji { font-size: 2.7rem; display: inline-block; transition: transform .2s; }
+    .pet-emoji.bounce { animation: pet-bounce .4s ease; }
+    .pet-emoji.shake  { animation: pet-shake  .4s ease; }
+    @keyframes pet-bounce { 0%{transform:scale(1)} 35%{transform:scale(1.55) translateY(-8px)} 65%{transform:scale(.9)} 100%{transform:scale(1)} }
+    @keyframes pet-shake  { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px) rotate(-5deg)} 40%{transform:translateX(7px) rotate(5deg)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+    .pet-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+    .pet-name  { font-family: var(--font-d); font-size: .9rem; font-weight: 700; color: var(--neon); }
+
+    /* ── Controls ── */
+    .controls-row {
+      display: grid; gap: 14px;
+      grid-template-columns: 1.2fr 1.2fr auto;
+      align-items: end;
+    }
+    label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; display: block; }
+    label > * { margin-top: 6px; }
+    input, select, button { font-family: var(--font-b); font-size: 1rem; }
+    input, select {
+      width: 100%; border: 1px solid rgba(0,245,255,.14);
+      background: rgba(0,245,255,.04); color: var(--text);
+      border-radius: 10px; padding: 10px 14px; outline: none;
+      transition: border-color .2s;
+    }
+    input:focus, select:focus { border-color: rgba(0,245,255,.45); box-shadow: 0 0 0 2px rgba(0,245,255,.09); }
+    select option { background: #0d1424; }
+    .inline { display: flex; gap: 8px; flex-wrap: wrap; }
+    button {
+      border: 1px solid rgba(255,255,255,.11); border-radius: 10px;
+      padding: 10px 16px; cursor: pointer; color: var(--text);
+      background: rgba(255,255,255,.07); font-weight: 600;
+      letter-spacing: .04em; white-space: nowrap;
+      transition: all .15s ease;
+    }
+    button:hover { transform: translateY(-2px); border-color: rgba(0,245,255,.3); background: rgba(0,245,255,.09); }
+    button:active { transform: translateY(0); }
+    .primary { background: linear-gradient(135deg,var(--neon),#7c3aed); border-color: transparent; color: #04060f; font-weight: 800; }
+    .primary:hover { background: linear-gradient(135deg,#33f8ff,#9061f9); border-color: transparent; }
+    .danger  { background: linear-gradient(135deg,var(--danger),#dc2626); border-color: transparent; color: #fff; }
+    .danger:hover { border-color: transparent; }
+
+    /* ── HUD ── */
+    .hud {
+      margin-top: 16px; display: grid; gap: 10px;
+      grid-template-columns: repeat(5, minmax(0,1fr));
+    }
+    .hud-card {
+      padding: 13px 15px; border-radius: 14px;
+      background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.06);
+      position: relative; overflow: hidden;
+    }
+    .hud-card::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      height: 2px; background: linear-gradient(90deg, var(--neon), transparent); opacity: .35;
+    }
+    .hud-card span { display: block; color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 5px; }
+    .hud-card strong { font-family: var(--font-d); font-size: 1.25rem; font-weight: 700; color: var(--neon); }
+    .lives-display { font-size: 1.2rem; letter-spacing: 3px; }
+
+    /* Timer bar */
+    .timer-bar-wrap { margin-top: 12px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.06); overflow: hidden; }
+    .timer-bar { height: 100%; border-radius: 3px; background: var(--neon); transition: width 1s linear, background .5s; }
+
+    /* Streak badge */
+    .streak-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 12px; border-radius: 20px;
+      background: rgba(251,191,36,.12); border: 1px solid rgba(251,191,36,.28);
+      font-family: var(--font-d); font-size: .78rem; font-weight: 700; color: var(--warn);
+      transition: all .2s; opacity: 0;
+    }
+    .streak-badge.hot {
+      background: rgba(251,191,36,.22); border-color: var(--warn);
+      box-shadow: 0 0 12px rgba(251,191,36,.4);
+      animation: streak-pop .4s ease;
+    }
+    @keyframes streak-pop { 0%{transform:scale(1)} 40%{transform:scale(1.25)} 100%{transform:scale(1)} }
+
+    /* ── Message ── */
+    .message {
+      min-height: 46px; display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 11px 16px; border-radius: 12px;
+      background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.07);
+      margin-bottom: 16px; font-size: 1rem; font-weight: 600; letter-spacing: .02em;
+      transition: border-color .25s, background .25s, color .25s;
+    }
+    .message.good { border-color: rgba(16,185,129,.4); background: rgba(16,185,129,.07); color: #34d399; }
+    .message.bad  { border-color: rgba(244,63,94,.4);  background: rgba(244,63,94,.07);  color: #fb7185; }
+
+    /* ── Board ── */
+    .board { padding: 28px 20px 20px; border-radius: 16px; background: rgba(0,0,0,.22); border: 1px solid rgba(255,255,255,.05); }
+    .board-line { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: flex-end; min-height: 95px; }
+
+    /* Value-colored cards: hue set per-card via --h */
+    .card {
+      --h: 200;
+      min-width: 60px; padding: 14px 10px; text-align: center;
+      font-family: var(--font-d); font-weight: 700; font-size: 1.25rem;
+      border-radius: 14px;
+      background: hsla(var(--h), 65%, 18%, .85);
+      border: 2px solid hsla(var(--h), 65%, 42%, .4);
+      color: hsl(var(--h), 75%, 78%);
+      transition: all .25s ease;
+      position: relative; user-select: none;
+    }
+    .card-idx { display: block; font-size: .52rem; color: hsla(var(--h), 45%, 60%, .65); margin-bottom: 3px; font-family: var(--font-b); }
+    .card.sorted {
+      background: hsla(var(--h), 55%, 14%, .9);
+      border-color: hsla(var(--h), 65%, 46%, .65);
+      box-shadow: 0 0 10px hsla(var(--h), 65%, 46%, .2);
+    }
+    .card.active-key {
+      border-color: var(--warn); background: rgba(251,191,36,.13); color: var(--warn);
+      box-shadow: 0 0 22px rgba(251,191,36,.45), 0 4px 20px rgba(0,0,0,.3);
+      transform: scale(1.12) translateY(-5px); z-index: 2;
+    }
+    /* Card animations */
+    .anim-enter { animation: c-enter .3s ease; }
+    .anim-swap  { animation: c-swap  .28s ease; }
+    .anim-place { animation: c-place .38s ease; }
+    .anim-wrong { animation: c-wrong .42s ease; }
+    @keyframes c-enter { from{opacity:0;transform:translateY(-14px) scale(.88)} to{opacity:1;transform:translateY(0) scale(1)} }
+    @keyframes c-swap  { 0%{transform:translateX(0)} 30%{transform:translateX(-18px)} 65%{transform:translateX(5px)} 100%{transform:translateX(0)} }
+    @keyframes c-place { 0%{transform:scale(1.12) translateY(-5px)} 45%{transform:scale(1.3) translateY(-10px);background:rgba(16,185,129,.3);border-color:var(--success)} 100%{transform:scale(1)} }
+    @keyframes c-wrong { 0%,100%{transform:translateX(0);border-color:var(--danger)} 20%{transform:translateX(-9px)} 40%{transform:translateX(9px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+
+    /* ── Action row ── */
+    .action-row { display: flex; justify-content: center; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+    .action-row button { font-family: var(--font-d); font-size: .82rem; padding: 12px 18px; font-weight: 700; letter-spacing: .06em; }
+    .btn-shift { background: linear-gradient(135deg,rgba(124,58,237,.28),rgba(124,58,237,.1)); border-color: rgba(124,58,237,.5); color: #c4b5fd; }
+    .btn-shift:hover { background: linear-gradient(135deg,rgba(124,58,237,.5),rgba(124,58,237,.2)); border-color: rgba(124,58,237,.85); color: #ede9fe; }
+    .btn-place { background: linear-gradient(135deg,rgba(0,245,255,.18),rgba(0,245,255,.04)); border-color: rgba(0,245,255,.5); color: var(--neon); }
+    .btn-place:hover { background: linear-gradient(135deg,rgba(0,245,255,.32),rgba(0,245,255,.1)); border-color: var(--neon); box-shadow: 0 0 16px rgba(0,245,255,.28); color: #fff; }
+    .btn-hint { background: linear-gradient(135deg,rgba(251,191,36,.22),rgba(251,191,36,.06)); border-color: rgba(251,191,36,.45); color: var(--warn); }
+    .btn-hint:hover { background: linear-gradient(135deg,rgba(251,191,36,.38),rgba(251,191,36,.12)); border-color: var(--warn); color: #fff; }
+
+    /* Key info bar */
+    .key-wrap { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    .key-card { padding: 10px 18px; border-radius: 12px; background: rgba(251,191,36,.07); border: 1px solid rgba(251,191,36,.18); display: flex; align-items: center; gap: 10px; }
+    .key-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+    .key-value { font-family: var(--font-d); font-size: 1.9rem; font-weight: 900; color: var(--warn); min-width: 2.5ch; }
+    .rule-text { color: var(--muted); font-size: .82rem; max-width: 280px; line-height: 1.5; }
+
+    /* ── Shop ── */
+    h2 { font-family: var(--font-d); font-size: 1rem; font-weight: 700; color: var(--neon); letter-spacing: .06em; margin-bottom: 14px; }
+    .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 10px; }
+    .pet-card { padding: 14px 10px; background: rgba(255,255,255,.04); border-radius: 13px; text-align: center; border: 1px solid rgba(255,255,255,.07); transition: all .2s; }
+    .pet-card:hover { border-color: rgba(0,245,255,.2); background: rgba(0,245,255,.04); }
+    .pet-card.owned   { border-color: rgba(0,245,255,.28); }
+    .pet-card.equipped{ border-color: var(--neon); box-shadow: 0 0 12px rgba(0,245,255,.18); }
+    .pet-icon   { font-size: 2.1rem; display: block; margin-bottom: 5px; }
+    .pet-card strong { font-size: .9rem; display: block; margin-bottom: 3px; }
+    .pet-cost { font-size: .72rem; color: var(--warn); font-family: var(--font-d); margin-bottom: 9px; }
+
+    /* ── Overlays ── */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.72); display: grid; place-items: center; padding: 16px; z-index: 20; backdrop-filter: blur(5px); }
+    .hidden { display: none; }
+    .popup { width: min(580px,100%); padding: 28px; background: rgba(6,10,22,.97); border-radius: 22px; border: 1px solid var(--border); box-shadow: 0 0 60px rgba(0,245,255,.12); }
+    .popup h2 { margin-bottom: 12px; }
+    .popup p  { color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+    .go-popup { width: min(650px,100%); padding: 30px 26px; background: rgba(4,2,12,.98); border: 1px solid rgba(244,63,94,.28); border-radius: 26px; box-shadow: 0 0 80px rgba(244,63,94,.14); }
+    .go-title { font-family: var(--font-d); font-size: 1.9rem; font-weight: 900; color: var(--danger); text-align: center; margin-bottom: 5px; letter-spacing: .06em; }
+    .go-reason { text-align: center; color: var(--muted); margin-bottom: 22px; font-size: .95rem; }
+    .scoreboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
+    .score-card { padding: 15px; border-radius: 13px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); text-align: center; }
+    .score-card strong { display: block; font-family: var(--font-d); font-size: .9rem; margin-bottom: 4px; }
+    .score-card.winner { border-color: var(--neon); box-shadow: 0 0 12px rgba(0,245,255,.18); }
+    .go-actions { display: flex; gap: 10px; justify-content: center; }
+    /* Tutorial */
+    .tutorial-steps { list-style: none; counter-reset: steps; display: grid; gap: 9px; margin-bottom: 20px; }
+    .tutorial-steps li { counter-increment: steps; display: flex; gap: 12px; align-items: flex-start; padding: 11px; background: rgba(255,255,255,.03); border-radius: 10px; line-height: 1.5; font-size: .95rem; }
+    .tutorial-steps li::before { content: counter(steps); font-family: var(--font-d); font-size: .78rem; font-weight: 700; color: var(--neon); background: rgba(0,245,255,.1); border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 820px) {
+      .controls-row { grid-template-columns: 1fr; }
+      .hud { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-bg"><div class="grid-lines"></div></div>
+  <div class="scanlines"></div>
+  <div class="flash" id="flashEl"></div>
+
+  <main class="app">
+
+    <!-- HERO -->
+    <section class="hero panel">
+      <div>
+        <h1>Insertion Sort<br>Adventure</h1>
+        <p class="subtitle">Sort the sequence — one key at a time</p>
+      </div>
+      <div class="pet-badge">
+        <div id="petEmoji" class="pet-emoji">🐱</div>
+        <div>
+          <div class="pet-label">Companion</div>
+          <div id="petName" class="pet-name">Cat</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTROLS -->
+    <section class="panel controls">
+      <div class="controls-row">
+        <label>Player
+          <select id="playerSelect"></select>
+        </label>
+        <label>New Player
+          <div class="inline">
+            <input id="newPlayer" maxlength="24" placeholder="Enter name…" />
+            <button id="addPlayerBtn">Add</button>
+          </div>
+        </label>
+        <div class="inline" style="margin-top:auto">
+          <button id="startBtn" class="primary">▶ Start</button>
+          <button id="helpBtn">? Help</button>
+          <button id="musicBtn">♪ Music</button>
+          <button id="stopBtn" class="danger">■ Stop</button>
+        </div>
+      </div>
+
+      <div class="hud">
+        <div class="hud-card"><span>Level</span><strong id="levelValue">1 / 50</strong></div>
+        <div class="hud-card"><span>Timer</span><strong id="timerValue">60</strong></div>
+        <div class="hud-card"><span>Bank</span><strong id="pointsValue">0</strong></div>
+        <div class="hud-card"><span>High Score</span><strong id="highScoreValue">0</strong></div>
+        <div class="hud-card"><span>Lives</span><strong id="livesValue"><span class="lives-display">❤️❤️❤️</span></strong></div>
+      </div>
+      <div class="timer-bar-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    </section>
+
+    <!-- GAME -->
+    <section class="panel game">
+      <div id="message" class="message">Create or select a player to begin.</div>
+      <div class="board">
+        <div id="boardArea" class="board-line"></div>
+        <div class="action-row" id="gameActions"></div>
+        <div class="key-wrap">
+          <div class="key-card">
+            <div>
+              <div class="key-label">Sorting Key</div>
+              <div id="keyValue" class="key-value">—</div>
+            </div>
+          </div>
+          <div class="rule-text">Left neighbours must be <strong style="color:var(--neon)">smaller</strong>. Shift if not. Place when correct.</div>
+          <span class="streak-badge" id="streakBadge">🔥 ×1</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SHOP -->
+    <section class="panel shop">
+      <h2>🐾 Companion Shop</h2>
+      <div id="shopGrid" class="shop-grid"></div>
+    </section>
+  </main>
+
+  <!-- OVERLAYS -->
+  <div id="overlay" class="overlay hidden">
+    <div class="popup panel">
+      <h2 id="overlayTitle">Level Up</h2>
+      <p id="overlayMsg"></p>
+      <button id="overlayBtn" class="primary">Continue →</button>
+    </div>
+  </div>
+
+  <div id="tutorial" class="overlay hidden">
+    <div class="popup panel">
+      <h2>How to Play</h2>
+      <ul class="tutorial-steps">
+        <li>The <strong style="color:var(--warn)">yellow Key Card</strong> is the element you're currently sorting.</li>
+        <li>Press <strong style="color:#c4b5fd">⬅ Shift Left</strong> if the card to the left is <em>larger</em> than the Key.</li>
+        <li>Press <strong style="color:var(--neon)">✓ Place Card</strong> once all cards to the left are smaller (or you're at index 0).</li>
+        <li>Wrong moves cost a life. Build consecutive-correct <strong style="color:var(--warn)">streaks</strong> to multiply your score!</li>
+        <li>Stumped? <strong style="color:var(--warn)">💡 Hint</strong> shows the correct move for −30 pts.</li>
+      </ul>
+      <button id="tutorialBtn" class="primary">Got It →</button>
+    </div>
+  </div>
+
+  <div id="gameOverOverlay" class="overlay hidden">
+    <div class="go-popup">
+      <h2 class="go-title">💀 GAME OVER</h2>
+      <p id="goReason" class="go-reason"></p>
+      <div id="goScoreboard" class="scoreboard"></div>
+      <div class="go-actions">
+        <button id="goNewGameBtn" class="primary">🔄 Retry</button>
+        <button id="goQuitBtn" class="danger">✕ Quit</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY  = "ins_sort_v4";
+    const TOTAL_LEVELS = 50;
+    const MAX_LIVES    = 3;
+
+    /* ─── Audio ─── */
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null, isMusicOn = false, musicTO = null, melodyIdx = 0;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new AudioCtx();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq = 440, type = 'sine', dur = 0.12, vol = 0.08) {
+      try {
+        initAudio();
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = type; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        g.gain.setValueAtTime(vol, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + dur);
+      } catch(e) {}
+    }
+
+    // Map card value 10–99 → frequency 200–780 Hz
+    function valFreq(v) { return 200 + ((v - 10) / 89) * 580; }
+
+    // Ascending + descending pentatonic chiptune loop
+    const MELODY = [261.63,293.66,329.63,392.00,440.00,523.25,587.33,659.25,
+                    587.33,523.25,440.00,392.00,329.63,293.66];
+    function musicLoop() {
+      if (!isMusicOn) return;
+      playTone(MELODY[melodyIdx++ % MELODY.length], 'square', .32, .022);
+      musicTO = setTimeout(musicLoop, 260);
+    }
+    function toggleMusic() {
+      initAudio(); isMusicOn = !isMusicOn;
+      el.musicBtn.textContent = isMusicOn ? '♪ Music: On' : '♪ Music';
+      isMusicOn ? musicLoop() : clearTimeout(musicTO);
+    }
+
+    /* ─── Pet data ─── */
+    const PETS = [
+      {name:"Cat",emoji:"🐱",cost:0},{name:"Bunny",emoji:"🐰",cost:300},
+      {name:"Fox",emoji:"🦊",cost:500},{name:"Panda",emoji:"🐼",cost:750},
+      {name:"Bear",emoji:"🐻",cost:1000},{name:"Dino",emoji:"🦕",cost:1300},
+      {name:"Penguin",emoji:"🐧",cost:1700},{name:"Koala",emoji:"🐨",cost:2200},
+      {name:"Tiger",emoji:"🐯",cost:2800},{name:"Wolf",emoji:"🐺",cost:3500},
+      {name:"Elephant",emoji:"🐘",cost:4300},{name:"Horse",emoji:"🐴",cost:5200},
+      {name:"Frog",emoji:"🐸",cost:6200},{name:"Monkey",emoji:"🐵",cost:7400},
+      {name:"Parrot",emoji:"🦜",cost:8800},{name:"Rabbit",emoji:"🐇",cost:10400},
+      {name:"Otter",emoji:"🦦",cost:12200},{name:"Unicorn",emoji:"🦄",cost:14500},
+      {name:"Dragon",emoji:"🐲",cost:17500},{name:"Phoenix",emoji:"🔥",cost:21000},
+    ];
+
+    /* ─── State ─── */
+    const S = {
+      players:{}, currentPlayer:"", running:false,
+      level:1, timer:60, timerMax:60,
+      board:[], currentIndex:1, scanIndex:1,
+      timerId:null, lives:MAX_LIVES,
+      sessionScore:0, streak:0,
+    };
+
+    /* ─── DOM refs ─── */
+    const el = {
+      playerSelect:    document.getElementById("playerSelect"),
+      newPlayer:       document.getElementById("newPlayer"),
+      addPlayerBtn:    document.getElementById("addPlayerBtn"),
+      startBtn:        document.getElementById("startBtn"),
+      helpBtn:         document.getElementById("helpBtn"),
+      musicBtn:        document.getElementById("musicBtn"),
+      stopBtn:         document.getElementById("stopBtn"),
+      levelValue:      document.getElementById("levelValue"),
+      timerValue:      document.getElementById("timerValue"),
+      pointsValue:     document.getElementById("pointsValue"),
+      highScoreValue:  document.getElementById("highScoreValue"),
+      livesValue:      document.getElementById("livesValue"),
+      message:         document.getElementById("message"),
+      boardArea:       document.getElementById("boardArea"),
+      gameActions:     document.getElementById("gameActions"),
+      keyValue:        document.getElementById("keyValue"),
+      shopGrid:        document.getElementById("shopGrid"),
+      petEmoji:        document.getElementById("petEmoji"),
+      petName:         document.getElementById("petName"),
+      overlay:         document.getElementById("overlay"),
+      overlayTitle:    document.getElementById("overlayTitle"),
+      overlayMsg:      document.getElementById("overlayMsg"),
+      overlayBtn:      document.getElementById("overlayBtn"),
+      tutorial:        document.getElementById("tutorial"),
+      tutorialBtn:     document.getElementById("tutorialBtn"),
+      gameOverOverlay: document.getElementById("gameOverOverlay"),
+      goReason:        document.getElementById("goReason"),
+      goScoreboard:    document.getElementById("goScoreboard"),
+      goNewGameBtn:    document.getElementById("goNewGameBtn"),
+      goQuitBtn:       document.getElementById("goQuitBtn"),
+      timerBar:        document.getElementById("timerBar"),
+      streakBadge:     document.getElementById("streakBadge"),
+      flashEl:         document.getElementById("flashEl"),
+    };
+
+    /* ─── Helpers ─── */
+    const save    = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(S.players));
+    const load    = () => { S.players = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; };
+    const current = () => S.players[S.currentPlayer];
+    // Value 10–99 → hue 220 (blue) → 0 (red): low numbers are cool, high numbers are warm
+    const valHue  = v  => Math.round(220 - ((v - 10) / 89) * 220);
+    const mult    = () => Math.min(4, 1 + Math.floor(S.streak / 3));
+
+    function flash(type) {
+      el.flashEl.className = 'flash flash-' + type;
+      void el.flashEl.offsetWidth; // force reflow to restart
+    }
+
+    function petAnim(type) {
+      el.petEmoji.classList.remove('bounce', 'shake');
+      void el.petEmoji.offsetWidth;
+      el.petEmoji.classList.add(type);
+      setTimeout(() => el.petEmoji.classList.remove(type), 500);
+    }
+
+    function setMsg(text, type = '') {
+      el.message.className = 'message' + (type ? ' ' + type : '');
+      el.message.textContent = text;
+    }
+
+    /* ─── HUD ─── */
+    function updateHUD() {
+      const p = current();
+      el.levelValue.textContent = `${S.level} / ${TOTAL_LEVELS}`;
+      el.timerValue.textContent = S.timer;
+
+      // Timer bar colour: cyan → amber → red
+      const pct = (S.timer / S.timerMax) * 100;
+      const barColor = pct > 50 ? '#00f5ff' : pct > 25 ? '#fbbf24' : '#f43f5e';
+      el.timerBar.style.width = pct + '%';
+      el.timerBar.style.background = barColor;
+      el.timerBar.style.boxShadow = `0 0 8px ${barColor}`;
+
+      if (p) {
+        el.pointsValue.textContent = S.running ? `(${S.sessionScore}) ${p.points}` : p.points;
+        el.highScoreValue.textContent = p.highScore;
+        const pet = PETS.find(x => x.name === p.activePet);
+        if (pet) { el.petEmoji.textContent = pet.emoji; el.petName.textContent = pet.name; }
+      }
+
+      let lH = '';
+      for (let i = 0; i < MAX_LIVES; i++) lH += `<span style="${i < S.lives ? '' : 'opacity:.2'}">❤️</span>`;
+      el.livesValue.innerHTML = `<span class="lives-display">${lH}</span>`;
+
+      // Streak badge
+      const m = mult(), str = S.streak;
+      el.streakBadge.style.opacity = str > 0 ? '1' : '0';
+      if (str > 0) {
+        el.streakBadge.textContent = `🔥 ×${m}` + (str >= 3 ? ` (${str}×)` : '');
+        el.streakBadge.className = 'streak-badge' + (m >= 2 ? ' hot' : '');
+      }
+    }
+
+    /* ─── Board renderer ─── */
+    // animMode per card: 'swap'|'place'|'wrong'|'enter'|''
+    function renderBoard(specialIdx = -1, specialMode = '') {
+      if (!S.running) return;
+      el.boardArea.innerHTML = '';
+      el.gameActions.innerHTML = '';
+
+      S.board.forEach((val, idx) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.setProperty('--h', valHue(val));
+
+        const idxSpan = document.createElement('span');
+        idxSpan.className = 'card-idx';
+        idxSpan.textContent = `[${idx}]`;
+        card.appendChild(idxSpan);
+        card.appendChild(document.createTextNode(val));
+
+        if (idx < S.currentIndex) card.classList.add('sorted');
+        if (idx === S.scanIndex) { card.classList.add('active-key'); el.keyValue.textContent = val; }
+
+        if (idx === specialIdx && specialMode) card.classList.add('anim-' + specialMode);
+        else card.classList.add('anim-enter');
+
+        el.boardArea.appendChild(card);
+      });
+
+      // Buttons
+      const bShift = document.createElement('button');
+      bShift.className = 'btn-shift'; bShift.innerHTML = '⬅ Shift Left';
+      bShift.onclick = handleShiftLeft;
+
+      const bHint = document.createElement('button');
+      bHint.className = 'btn-hint'; bHint.innerHTML = '💡 Hint (−30)';
+      bHint.onclick = handleHint;
+
+      const bPlace = document.createElement('button');
+      bPlace.className = 'btn-place'; bPlace.innerHTML = '✓ Place Card';
+      bPlace.onclick = handlePlace;
+
+      el.gameActions.append(bShift, bHint, bPlace);
+    }
+
+    /* ─── Actions ─── */
+    function handleHint() {
+      const j = S.scanIndex;
+      S.sessionScore = Math.max(0, S.sessionScore - 30);
+      if (j > 0 && S.board[j] < S.board[j - 1])
+        setMsg(`💡 Left card (${S.board[j-1]}) is BIGGER than key (${S.board[j]}) → Shift Left!`);
+      else
+        setMsg(`💡 Left card is smaller (or you're at start) → Place the Card!`, 'good');
+      updateHUD();
+    }
+
+    function handleShiftLeft() {
+      const j = S.scanIndex;
+      if (j > 0) {
+        if (S.board[j] < S.board[j - 1]) {
+          [S.board[j], S.board[j - 1]] = [S.board[j - 1], S.board[j]];
+          S.scanIndex--;
+          const pts = 20 * mult();
+          S.sessionScore += pts; S.streak++;
+          playTone(valFreq(S.board[S.scanIndex]), 'sine', .12, .08);
+          petAnim('bounce'); flash('good');
+          setMsg(`Shifted! +${pts} pts${mult() > 1 ? ` ×${mult()}` : ''}`, 'good');
+          renderBoard(S.scanIndex, 'swap');
+          updateHUD();
+        } else {
+          S.streak = 0;
+          renderBoard(S.scanIndex, 'wrong');
+          penalty('Wrong! The card to the left is already smaller.');
+        }
+      } else {
+        S.streak = 0;
+        renderBoard(S.scanIndex, 'wrong');
+        penalty('Already at the start! Place the card.');
+      }
+    }
+
+    function handlePlace() {
+      const j = S.scanIndex;
+      if (j === 0 || S.board[j] >= S.board[j - 1]) {
+        const pts = 100 * mult();
+        S.sessionScore += pts; S.streak++;
+        playTone(valFreq(S.board[j]) * 1.5, 'sine', .22, .1);
+        petAnim('bounce'); flash('good');
+        const placed = S.scanIndex;
+        S.currentIndex++; S.scanIndex = S.currentIndex;
+        if (S.currentIndex >= S.board.length) {
+          renderBoard(placed, 'place');
+          setTimeout(finishLevel, 450);
+        } else {
+          setMsg(`Placed! +${pts} pts${mult() > 1 ? ` ×${mult()}` : ''} — next element…`, 'good');
+          renderBoard(placed, 'place');
+        }
+        updateHUD();
+      } else {
+        S.streak = 0;
+        renderBoard(S.scanIndex, 'wrong');
+        penalty("Not yet! There's still a larger number to the left.");
+      }
+    }
+
+    function penalty(msg) {
+      S.lives--;
+      S.sessionScore = Math.max(0, S.sessionScore - 50);
+      setMsg(msg, 'bad');
+      playTone(140, 'sawtooth', .32, .14);
+      petAnim('shake'); flash('bad');
+      updateHUD();
+      if (S.lives <= 0) triggerGameOver('Out of lives!');
+    }
+
+    /* ─── Level flow ─── */
+    function startLevel(lvl) {
+      if (!S.currentPlayer) return;
+      clearInterval(S.timerId);
+      S.level = lvl;
+      S.timerMax = Math.max(20, 70 - lvl * 2);
+      S.timer = S.timerMax; S.streak = 0;
+      const count = Math.min(12, 4 + Math.floor(lvl / 2));
+      S.board = Array.from({length:count}, () => Math.floor(Math.random() * 90) + 10);
+      S.currentIndex = 1; S.scanIndex = 1; S.running = true;
+      setMsg(`Level ${lvl}: Sort the sequence!`);
+      renderBoard(); updateHUD();
+      S.timerId = setInterval(() => {
+        S.timer--; updateHUD();
+        if (S.timer <= 0) triggerGameOver('Ran out of time!');
+      }, 1000);
+    }
+
+    function finishLevel() {
+      clearInterval(S.timerId); S.running = false;
+      const bonus = 200 + S.level * 50;
+      S.sessionScore += bonus;
+      const p = current();
+      if (p) {
+        p.points += S.sessionScore;
+        if (S.sessionScore > p.highScore) p.highScore = S.sessionScore;
+        S.sessionScore = 0; save();
+      }
+      updateHUD(); renderShop();
+      if (S.level >= TOTAL_LEVELS) {
+        showOverlay('🏆 Grand Champion!', 'You sorted everything — perfectly!', 'Finish', init);
+      } else {
+        showOverlay('Level Complete! 🎉', `Bonus: +${bonus} pts banked!`, 'Next Level →', () => startLevel(S.level + 1));
+      }
+    }
+
+    function triggerGameOver(reason) {
+      clearInterval(S.timerId); S.running = false;
+      el.goReason.textContent = reason;
+      const p = current();
+      if (p) {
+        p.points += S.sessionScore;
+        if (S.sessionScore > p.highScore) p.highScore = S.sessionScore;
+        S.sessionScore = 0; save();
+      }
+      el.goScoreboard.innerHTML = '';
+      Object.values(S.players).sort((a,b) => b.highScore - a.highScore).slice(0,4).forEach(plr => {
+        const d = document.createElement('div');
+        d.className = 'score-card' + (plr.name === S.currentPlayer ? ' winner' : '');
+        d.innerHTML = `<strong>${plr.name}</strong><span style="font-family:var(--font-d);color:var(--neon)">${plr.highScore}</span>`;
+        el.goScoreboard.appendChild(d);
+      });
+      el.gameOverOverlay.classList.remove('hidden');
+      updateHUD(); renderShop();
+    }
+
+    function showOverlay(title, msg, btnText, action) {
+      el.overlayTitle.textContent = title;
+      el.overlayMsg.textContent = msg;
+      el.overlayBtn.textContent = btnText;
+      el.overlayBtn.onclick = () => { el.overlay.classList.add('hidden'); action(); };
+      el.overlay.classList.remove('hidden');
+    }
+
+    /* ─── Shop ─── */
+    function renderShop() {
+      el.shopGrid.innerHTML = '';
+      const p = current();
+      PETS.forEach(pet => {
+        const owned    = p?.inventory[pet.name];
+        const equipped = p?.activePet === pet.name;
+        const card = document.createElement('div');
+        card.className = 'pet-card' + (owned ? ' owned' : '') + (equipped ? ' equipped' : '');
+        card.innerHTML = `
+          <span class="pet-icon">${pet.emoji}</span>
+          <strong>${pet.name}</strong>
+          <div class="pet-cost">${pet.cost === 0 ? 'Free' : pet.cost + ' pts'}</div>
+          <button class="${!owned ? 'primary' : ''}" ${equipped ? 'disabled style="opacity:.45"' : ''}>
+            ${equipped ? '✓ Active' : owned ? 'Equip' : 'Buy'}
+          </button>`;
+        card.querySelector('button').onclick = () => {
+          if (equipped || !p) return;
+          if (!owned) {
+            if (p.points < pet.cost) { setMsg(`Need ${pet.cost - p.points} more pts for ${pet.name}!`, 'bad'); return; }
+            p.points -= pet.cost; p.inventory[pet.name] = true;
+            playTone(700, 'sine', .28, .12);
+            setMsg(`🎉 ${pet.emoji} ${pet.name} joined your team!`, 'good');
+          }
+          p.activePet = pet.name; save(); updateHUD(); renderShop();
+        };
+        el.shopGrid.appendChild(card);
+      });
+    }
+
+    /* ─── Bindings ─── */
+    el.addPlayerBtn.onclick = () => {
+      const name = el.newPlayer.value.trim();
+      if (!name) return;
+      if (!S.players[name]) S.players[name] = { name, points:0, highScore:0, inventory:{Cat:true}, activePet:'Cat' };
+      S.currentPlayer = name; el.newPlayer.value = '';
+      save(); init();
+    };
+
+    el.playerSelect.onchange = e => {
+      S.currentPlayer = e.target.value; S.running = false; S.sessionScore = 0;
+      updateHUD(); renderShop();
+    };
+
+    el.startBtn.onclick = () => {
+      if (!S.currentPlayer) { alert('Select or add a player first!'); return; }
+      S.lives = MAX_LIVES; S.sessionScore = 0; S.streak = 0;
+      startLevel(1);
+    };
+
+    el.stopBtn.onclick    = () => { clearInterval(S.timerId); S.running = false; S.sessionScore = 0; updateHUD(); };
+    el.helpBtn.onclick    = () => el.tutorial.classList.remove('hidden');
+    el.tutorialBtn.onclick= () => el.tutorial.classList.add('hidden');
+    el.musicBtn.onclick   = toggleMusic;
+    el.goNewGameBtn.onclick=() => { el.gameOverOverlay.classList.add('hidden'); el.startBtn.click(); };
+    el.goQuitBtn.onclick  = () => el.gameOverOverlay.classList.add('hidden');
+
+    /* ─── Init ─── */
+    function init() {
+      load();
+      const names = Object.keys(S.players).sort();
+      el.playerSelect.innerHTML = '<option value="">— Select Player —</option>' +
+        names.map(n => `<option value="${n}">${n}</option>`).join('');
+      if (S.currentPlayer) el.playerSelect.value = S.currentPlayer;
+      updateHUD(); renderShop();
+    }
+
+    init();
+  </script>
+</body>
+</html>
