@@ -1,3 +1,7 @@
+<img width="1872" height="913" alt="Screenshot 2026-11-18 233313" src="https://github.com/user-attachments/assets/597e8490-67f2-4c21-bfd2-a74521b75ac2" />
+<img width="1881" height="888" alt="Screenshot 2026-11-18 233107" src="https://github.com/user-attachments/assets/1d6904d7-cf51-431b-a738-5998e46cc96a" />
+
+
 # 🎮 Game of Algorithms
 
 ### Making Data Structures and Algorithms more interactive, one algorithm at a time.
